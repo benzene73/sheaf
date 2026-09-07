@@ -1,0 +1,13 @@
+# NumberField numeric and input core
+
+Pin `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`; MIT headers and license retained.
+
+`number-parse.ts` copies number-field/utils/parse.ts, `number-validate.ts` copies utils/validate.ts with exact inline clamp helper, and `number-format.ts` copies packages/utils formatNumber/stringifyLocale. These preserve locale separator/numeral/symbol handling, cached Intl formatting, directional step snapping, fractional cleanup and clamp-before/after-format-rounding. They are source translations, not new parseFloat wrappers. They still use JavaScript numbers; this is not arbitrary-precision monetary arithmetic.
+
+`number-field.ts` extracts NumberFieldRoot.tsx:201–293 getStepAmount/setValue/incrementValue. Defaults: step1, smallStep0.1, largeStep10; snapOnStep=false; allowOutOfRange=false; null is empty. An empty step seeds0 and clamps it without adding a step. Input reasons can report changes even when the final number is unchanged. Canceled changes stop effects. Accepted changes update canonical value, dirty and pending commit; lastChanged then input formatting/force-render follow. allowInputSync remains a live getter around callbacks.
+
+`number-input.ts` extracts Root.tsx:145–198 allowed keys and Input.tsx:136–268 onBlur/onChange. Partial numeric text is preserved without issuing a numeric change; invalid characters are rejected. The DOM adapter must restore the existing text when a native input event introduces rejected characters, since React's controlled rerender does that in the source. Blur uses the authoritative number for untouched formatted display, preserving precision. Manual or explicitly rounded input may be reparsed; commits use lastChangedValue after clamping, respect cancellation, and normalize displayed text. The blur's old numeric value is captured before callbacks.
+
+Host responsibilities: separate visible text from canonical hidden/form number, input synchronization flag, pending commit lifecycle, validation/touched/dirty effects, disabled/readOnly guards, key/button events, and form submission. These extracted callbacks do not themselves implement Phoenix validation. Dedicated paste, wheel, scrub/drag, hold-repeat, selection-range and mobile keyboard behavior remain outside this slice. Basic modifier step amounts are available; full keyboard handler is not claimed.
+
+Nine focused units cover locale decimals/grouping, decimal steps and bounds, empty seeding, raw-text preservation with canonical clamp, cancellation, out-of-range policy, partial text, untouched precision and committed clamped blur. The independent Chromium harness covers ordinary component interactions; no additional cross-engine runs were performed after Chromium-only steering.
