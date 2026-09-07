@@ -18,7 +18,7 @@ const scenarios = [
   {
     name: "pointer item activation accepts value",
     steps: [
-      ["key", "ArrowDown", { open: true }],
+      ["key", "ArrowDown", { open: true, focus: "Alpha" }],
       [
         "option",
         "Bravo",
@@ -43,14 +43,14 @@ const scenarios = [
   {
     name: "Tab closes and advances to submit",
     steps: [
-      ["key", "ArrowDown", { open: true }],
+      ["key", "ArrowDown", { open: true, focus: "Alpha" }],
       ["key", "Tab", { open: false, focus: "Submit", value: "" }],
     ],
   },
   {
     name: "modal outside click does not activate target",
     steps: [
-      ["key", "ArrowDown", { open: true }],
+      ["key", "ArrowDown", { open: true, focus: "Alpha" }],
       ["outside", "", { open: false, focus: "Choose fruit", outside: 0 }],
     ],
   },
@@ -58,7 +58,7 @@ const scenarios = [
     name: "nonmodal outside click activates target",
     query: "&modal=false",
     steps: [
-      ["key", "ArrowDown", { open: true }],
+      ["key", "ArrowDown", { open: true, focus: "Alpha" }],
       ["outside", "", { open: false, outside: 1 }],
     ],
   },
