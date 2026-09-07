@@ -62,8 +62,13 @@ automatically reproduce their semantics.
 `useTypeahead.test.tsx`: repeated-first-letter :129, double-letter :145,
 current-active cycling :158, capslock :204, non-locale :214, typing :292,
 hidden :307, hidden-double-letter :317 and visibility:hidden :336.
-Eleven local unit cases exercise matching/session behavior with explicit fake
+Twelve local unit cases exercise matching/session behavior with explicit fake
 timer; no arbitrary sleep. Browser Menu fixture comparison is separate evidence.
+
+Negative control: disabling the rapid-succession reset branch produced three
+unit failures (cycle, unavailable double-letter, disabled/hidden matching).
+Byte-for-byte restoration returned all12 to passing. This is not the paired
+browser negative control, which must be run separately.
 
 Known upstream limitation retained: available double-letter labels disable rapid
 first-letter cycling globally. Also the open/selectedIndex effect clears timer

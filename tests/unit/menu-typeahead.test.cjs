@@ -66,3 +66,12 @@ test('case-insensitive match does not depend on locale lowercasing', () => {
 test('destroy clears timer and prevents further matches', () => {
   const t = setup(); t.key('b'); t.engine.destroy(); t.expire(); t.key('c'); assert.deepEqual(t.matches, [1]);
 });
+test('menu matches aria-disabled but skips native-disabled and hidden elements', () => {
+  const element = (native = false, visible = true) => ({ isConnected: true,
+    ownerDocument: { defaultView: { getComputedStyle: () => ({ visibility: 'visible' }) } },
+    checkVisibility: () => visible, matches: () => native,
+    getAttribute: () => 'true' });
+  const t = setup({ elements: [element(), element(), element(true), element(false, false)] });
+  t.key('b'); t.key('b'); assert.deepEqual(t.matches, [1, 1]);
+  t.expire(); t.key('c'); assert.deepEqual(t.matches, [1, 1]);
+});
