@@ -86,16 +86,25 @@ function SelectFixture() {
   const params = new URLSearchParams(location.search);
   const [value, setValue] = React.useState<string | null>(params.get('defaultValue'));
   const [changes, setChanges] = React.useState(0);
+  const [submits, setSubmits] = React.useState(0);
+  const [submitted, setSubmitted] = React.useState('');
+  const [outsideClicks, setOutsideClicks] = React.useState(0);
   return <main data-fixture-ready="true">
-    <Select.Root value={value} onValueChange={(next, details) => { setChanges(n => n + 1); if (params.get('cancelValue') === 'true') details.cancel(); else setValue(next); }}>
+    <form onSubmit={event => { event.preventDefault(); setSubmits(n => n + 1); setSubmitted(String(new FormData(event.currentTarget).get('fruit') || '')); }}>
+    <Select.Root name="fruit" modal={params.get('modal') !== 'false'} value={value} onValueChange={(next, details) => { setChanges(n => n + 1); if (params.get('cancelValue') === 'true') details.cancel(); else setValue(next); }}>
       <Select.Trigger aria-label="Choose fruit"><Select.Value placeholder="Choose" /></Select.Trigger>
       <Select.Portal><Select.Positioner alignItemWithTrigger={false}><Select.Popup>
         {['Alpha', 'Beta', 'Bravo', 'Charlie'].map(label => <Select.Item key={label} value={label} disabled={label === 'Beta'}><Select.ItemText>{label}</Select.ItemText></Select.Item>)}
       </Select.Popup></Select.Positioner></Select.Portal>
     </Select.Root>
+    <button type="submit">Submit</button><button type="reset">Reset</button>
+    </form>
     <output data-testid="select-value">{value || ''}</output>
     <output data-testid="select-change-count">{changes}</output>
-    <button type="button">Outside</button>
+    <output data-testid="select-submit-count">{submits}</output>
+    <output data-testid="select-submitted-value">{submitted}</output>
+    <output data-testid="select-outside-count">{outsideClicks}</output>
+    <button type="button" onClick={() => setOutsideClicks(n => n + 1)} style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
   </main>;
 }
 createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : <Fixture />);

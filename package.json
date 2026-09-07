@@ -12,7 +12,8 @@
     "test:menu": "node harness/menu.mjs",
     "test:filtering": "node harness/filtering.mjs",
     "test:menu-scroll": "node harness/menu-scroll.mjs",
-    "test:select": "node harness/select.mjs"
+    "test:select": "node harness/select.mjs",
+    "test:select-extra": "node harness/select-extra.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",
