@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Combobox } from '@base-ui/react/combobox';
+import { Popover } from '@base-ui/react/popover';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -39,4 +40,23 @@ function Fixture() {
     <button type="button">Outside</button>
   </main>;
 }
-createRoot(document.getElementById('root')!).render(<Fixture />);
+function PositioningFixture() {
+  const params = new URLSearchParams(location.search);
+  const size = params.get('size') || 'tall';
+  const width = size === 'wide' ? 1000 : 200;
+  const height = size === 'tall' ? 1000 : 100;
+  return <main data-fixture-ready="true">
+    <Popover.Root>
+      <Popover.Trigger data-testid="anchor" style={{ position: 'fixed', bottom: 8, left: 16, width: 100, height: 40 }}>Open popup</Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner data-testid="positioner" side="bottom" sideOffset={8} collisionPadding={12}
+          collisionAvoidance={{ fallbackAxisSide: 'none' }}>
+          <Popover.Popup data-testid="popup" style={{ boxSizing: 'border-box', width, height, maxWidth: 'var(--available-width)', maxHeight: 'var(--available-height)', background: '#ddd', overflow: 'auto' }}>
+            Popup content
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
+  </main>;
+}
+createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).get('fixture') === 'popover' ? <PositioningFixture /> : <Fixture />);
