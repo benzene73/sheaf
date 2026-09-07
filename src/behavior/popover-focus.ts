@@ -3,6 +3,7 @@
  * Pin 4d92faa1a4da6a5fe66a6194401470974fc2f8fe.
  * Copyright (c) 2019 Material-UI SAS. MIT: ../../licenses/BASE-UI-MIT.txt.
  */
+import type { FocusableElement } from './tabbable';
 export type InteractionType = '' | 'mouse' | 'touch' | 'pen' | 'keyboard';
 type FocusResult = boolean | HTMLElement | { current: HTMLElement | null } | null | void;
 export type FocusPolicy = boolean | { current: HTMLElement | null } | ((type: InteractionType) => FocusResult);
@@ -24,8 +25,8 @@ export function getPopoverFocusConfiguration(modal: boolean | 'trap-focus', hasC
 export function resolvePopoverInitialFocus(options: {
   popup: HTMLElement; policy?: FocusPolicy; interactionType: InteractionType;
   previouslyFocused: Element | null; contains(parent: HTMLElement, child: Element | null): boolean;
-  getTabbableContent(popup: HTMLElement): HTMLElement[];
-}): HTMLElement | null {
+  getTabbableContent(popup: HTMLElement): FocusableElement[];
+}): FocusableElement | null {
   const { popup, policy, interactionType, previouslyFocused, contains, getTabbableContent } = options;
   const resolved = policy === undefined ? defaultPopoverInitialFocus(popup, interactionType)
     : typeof policy === 'function' ? policy(interactionType) : policy;
@@ -39,7 +40,7 @@ export function resolvePopoverInitialFocus(options: {
 /** FloatingFocusManager's next-frame race guard; do not steal later intentional focus. */
 export function shouldRunInitialFocus(options: {
   open: boolean; hadFocusInside: boolean; currentActive: Element | null;
-  target: HTMLElement; focusCurrentlyInside: boolean;
+  target: FocusableElement; focusCurrentlyInside: boolean;
 }) {
   if (!options.open) return false;
   if (options.hadFocusInside) return true;

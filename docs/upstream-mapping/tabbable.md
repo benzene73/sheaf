@@ -1,0 +1,11 @@
+# Source tabbable and shadow DOM utilities
+
+`src/behavior/tabbable.ts` retains the complete algorithm of pinned Base UI `packages/react/src/floating-ui-react/utils/tabbable.ts` at `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`. Imports are redirected to the already translated visibility helper and new `shadow-dom.ts`; the inline ownerDocument fallback is the exact `packages/utils/src/owner.ts` implementation. `isOutsideEvent` drops the React synthetic-event type, retaining its DOM algorithm. `getFirstTabbableElement` comes from FloatingFocusManager lines96–106. MIT notices are preserved in both modules and the license file.
+
+`shadow-dom.ts` copies `packages/utils/src/shadowDom.ts`: deeply active element resolution, shadow-aware containment, and dispatched composed-path target fallback. No React runtime remains.
+
+The utility preserves candidate types including SVG anchors, disabled fieldset semantics through `:disabled`, aria-disabled inclusion, inert and hidden ancestry, closed details/first summary rules, named radio grouping by form, composed shadow/slot traversal, contenteditable/media fallback tabindex, and author tabindex restoration. It deliberately preserves **composed DOM order**, including positive tabindex values; it does not numerically sort them. `isTabbable` itself does not perform radio-group exclusion; `tabbable` does. Those are upstream behaviors, not claims that this utility models every browser's sequential focus order.
+
+The focus-policy initial target union is widened to match upstream `HTMLElement | SVGElement`. Final focus remains subject to FloatingFocusManager's explicit `isHTMLElement` guard. The host must preserve that distinction instead of dropping SVG candidates from initial focus.
+
+`tests/unit/tabbable.browser.cjs` runs eleven assertions in each Chromium, Firefox and WebKit (33/33). Cases map to upstream `tabbable.test.ts`: controls10/29, slotted39/unslotted52, details68/82, aria-disabled112, display-contents133/visibility override183, radio328/348, inert shadow365. Additional tests pin source order, disable/enable restoration and SVG inclusion. These execute real DOM visibility in all three engines. They are utility checks, not a full popup focus lifecycle certification; nested popup ownership and focus guards remain adapter responsibilities.
