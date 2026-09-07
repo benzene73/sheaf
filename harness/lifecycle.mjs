@@ -14,6 +14,7 @@ function snapshot() {
     accepted: document.querySelector('[data-testid="accepted-value"]').textContent.trim(),
     input: input.value,
     submits: Number(document.querySelector('[data-testid="submit-count"]').textContent),
+    valueChanges: Number(document.querySelector('[data-testid="value-change-count"]').textContent),
     caret: input.selectionStart,
   };
 }
@@ -33,7 +34,7 @@ const scenarios = [
   ] },
   { name: 'canceled selection stays open and unchanged', query: '?cancelValue=true', steps: [
     ['key', 'ArrowDown', { active: 'Apple' }],
-    ['key', 'Enter', { accepted: '', input: '', expanded: true, active: 'Apple', submits: 0 }],
+    ['key', 'Enter', { accepted: '', input: '', expanded: true, active: 'Apple', submits: 0, valueChanges: 1 }],
   ] },
   { name: 'canceled close accepts value but stays open', query: '?cancelClose=true', steps: [
     ['key', 'ArrowDown', { active: 'Apple' }],
