@@ -1,43 +1,38 @@
-# LiveView primitives viability lab
+# LiveView Base UI port playground
 
-Experimental local repository. No published package or Base UI compatibility claim.
-The trial implements a source-informed combobox behavioral contract, not a
-mechanical Base UI implementation port. See PORTING.md.
+Experimental local repository. No full Base UI compatibility or production claim.
+The pinned source is `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`.
+Read PORTING.md and ARCHITECTURE.md before changing behavior.
 
-## What ran
+## Runtime
 
-Real Phoenix Endpoint and LiveView on WSL, real WebSocket updates and server-rendered
-options, Chromium automation on Windows. No database, React or simulated LiveView.
-During the ten-minute trial, the server borrowed Kaguya's already installed Mix
-runtime/dependencies; it does NOT start Kaguya's application. Its source is separate.
-The minimal mix.exs is supplied for later standalone setup; its independent dependency
-resolution was not run in this trial. Likewise the JS imports/test runtime currently
-point at this machine's installed Phoenix assets and Playwright. These are explicit
-bootstrap shortcuts, not the proposed public-package distribution design.
+The lab is now an independent Phoenix application, with its own mix.lock and
+compiled dependencies. It does not start or depend on the Kaguya application.
+It uses no database. On the current machine run under Ubuntu WSL:
 
-## Re-run with this workspace's existing tools
-
-From PowerShell:
-
-```powershell
-& D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe D:/liveview-primitives-lab/client.js --bundle --outfile=D:/liveview-primitives-lab/public/app.js
-wsl -d Ubuntu -- bash -lc 'cd /home/benze/kaguya && mix run --no-compile --no-start /mnt/d/liveview-primitives-lab/server.exs'
+```sh
+cd /mnt/d/liveview-primitives-lab
+mix deps.get
+mix compile --warnings-as-errors
+mix phx.server
 ```
 
-In a second terminal:
+Default port is 4197; override with PORT. The JavaScript entry is client.js and
+must be bundled into priv/static/app.js after installing Mix dependencies; its
+Phoenix imports resolve from this project's deps. The paired harness supplies
+its own Node dependency setup separately.
 
-```powershell
-node D:/liveview-primitives-lab/test.cjs
-```
+- `/`: historical remote-search trial; independently written behavior, not a port.
+- `/paired`: bounded source-translated navigation fixture, plus a thin LiveView adapter.
 
-Preview http://localhost:4197. Cherry is deliberately rejected by the server.
-Query `slow` returns Apple after a delay; `fast` returns Banana sooner.
-Unrelated patch changes real option DOM attributes while preserving active input.
-Browser-generated artifacts are ignored; source, specification and review are in repo.
+`server.exs` is the historical single-script bootstrap and should not be used for
+current runs. The app source now lives under lib/lab, one module per file.
 
-## Not yet proven
+## Evidence boundaries
 
-Paired execution against upstream Base UI; Firefox/WebKit; screen readers; IME;
-outside click; Home/End/typeahead; form reset/recovery; reconnect; nested floating
-content; virtualization; animations; positioner; real application adapter costs.
-No production app modifications, dependency updates, commits or pushes in this trial.
+Mapping and divergences: docs/upstream-mapping and docs/known-divergences.
+Historical evidence: RESULTS.md, REVIEW.md and docs/history/ten-minute-trial.md.
+New browser runs belong under docs/runs. Passing bounded navigation checks is
+not evidence of full combobox state, async search, dialogs, positioning, screen
+readers, reconnect, or IME coverage. Those need their own mapped implementations
+and tests. No Kaguya/Nila application source or data is changed by this lab.

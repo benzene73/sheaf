@@ -7,3 +7,5 @@ _build/
 *.log
 test-results/
 playwright-report/
+
+priv/static/app.js

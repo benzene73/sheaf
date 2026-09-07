@@ -1,5 +1,6 @@
-import {Socket} from '../kaguya/deps/phoenix/priv/static/phoenix.mjs';
-import {LiveSocket} from '../kaguya/deps/phoenix_live_view/priv/static/phoenix_live_view.esm.js';
+import {Socket} from './deps/phoenix/priv/static/phoenix.mjs';
+import {LiveSocket} from './deps/phoenix_live_view/priv/static/phoenix_live_view.esm.js';
+import {PortedCombobox} from './src/liveview/ported-combobox';
 const Combo = {
   mounted() {
     this.input = this.el.querySelector('#query');
@@ -48,5 +49,5 @@ const Combo = {
   }
 };
 const NativeDialog={mounted(){this.el.showModal()},destroyed(){if(this.el.open)this.el.close()}};
-const liveSocket=new LiveSocket('/live',Socket,{params:{_csrf_token:document.querySelector('meta[name=csrf-token]').content},hooks:{Combo,NativeDialog}});
+const liveSocket=new LiveSocket('/live',Socket,{params:{_csrf_token:document.querySelector('meta[name=csrf-token]').content},hooks:{Combo,NativeDialog,PortedCombobox}});
 liveSocket.connect(); window.liveSocket=liveSocket;
