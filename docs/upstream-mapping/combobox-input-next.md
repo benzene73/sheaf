@@ -146,6 +146,12 @@ ordering, cancellation, event propagation, readOnly Enter, no-highlight native
 submission policy, code229 guard, RTL/Gecko caret decisions and close restoration.
 These are effect-double tests, not browser integration evidence.
 
+The keyboard return value reports only this input branch. Upstream composes
+floating list-navigation separately: readOnly returns early here but still permits
+ArrowDown browsing through that other handler. A host must not treat handled=true
+as permission to skip all composed handlers. Event default/propagation state and
+the individual composed primitive's rules decide that separately.
+
 Negative control run: remove `if (details.isCanceled) return` immediately after
 onValueChange in requestSingleSelectedValue. Test9 fails because rejected values
 reach assignment/input effects. Source was restored byte-for-byte and all12 pass.

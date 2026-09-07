@@ -72,7 +72,9 @@ function stopEvent(event: InputKeyEvent) {
 
 /**
  * Returns whether this input-specific branch handled the key. Event cancellation
- * is explicit: true does NOT mean preventDefault. Open Escape belongs to dismissal.
+ * is explicit: true does NOT mean preventDefault or veto other composed handlers.
+ * For example, readOnly returns here but upstream list navigation still runs.
+ * Open Escape belongs to dismissal.
  */
 export function runSingleInputKey(state: InputKeyState, event: InputKeyEvent, effects: InputKeyEffects): boolean {
   if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) return false;
