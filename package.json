@@ -1,0 +1,24 @@
+{
+  "name": "liveview-base-ui-port-harness",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:liveview": "esbuild client.js --bundle --outfile=priv/static/app.js",
+    "build:upstream": "node harness/build-upstream.mjs",
+    "serve:upstream": "node harness/serve-upstream.mjs",
+    "test:paired": "node harness/paired.mjs"
+  },
+  "dependencies": {
+    "@babel/runtime": "7.29.7",
+    "@floating-ui/react-dom": "2.1.9",
+    "@floating-ui/utils": "0.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "reselect": "5.2.0",
+    "use-sync-external-store": "1.6.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "playwright": "1.58.2"
+  }
+}
