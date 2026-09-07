@@ -6,6 +6,7 @@ import { Menu } from '@base-ui/react/menu';
 import { Select } from '@base-ui/react/select';
 import { Dialog } from '@base-ui/react/dialog';
 import { NumberField } from '@base-ui/react/number-field';
+import { Tabs } from '@base-ui/react/tabs';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -149,4 +150,12 @@ function NumberFixture() {
     <output data-testid="number-value">{value == null ? '' : String(value)}</output><output data-testid="number-submitted-value">{submitted}</output><output data-testid="number-submit-count">{submits}</output>
   </main>;
 }
-createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : <Fixture />);
+function TabsFixture() {
+  return <main data-fixture-ready="true"><Tabs.Root defaultValue="overview">
+    <Tabs.List aria-label="Sections" activateOnFocus={new URLSearchParams(location.search).get('auto') === 'true'}>
+      <Tabs.Tab value="overview">Overview</Tabs.Tab><Tabs.Tab value="disabled" disabled>Disabled</Tabs.Tab><Tabs.Tab value="reviews">Reviews</Tabs.Tab>
+    </Tabs.List>
+    <Tabs.Panel value="overview">Overview panel</Tabs.Panel><Tabs.Panel value="disabled">Disabled panel</Tabs.Panel><Tabs.Panel value="reviews">Reviews panel</Tabs.Panel>
+  </Tabs.Root><button>Outside</button></main>;
+}
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : fixture === 'tabs' ? <TabsFixture /> : <Fixture />);

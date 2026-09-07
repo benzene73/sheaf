@@ -22,7 +22,8 @@
     "test:popover-behavior": "node harness/popover-behavior.mjs",
     "test:liveview-lifecycle": "node harness/liveview-lifecycle.mjs",
     "test:dialog": "node harness/dialog.mjs",
-    "test:number-field": "node harness/number-field.mjs"
+    "test:number-field": "node harness/number-field.mjs",
+    "test:tabs": "node harness/tabs.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",
