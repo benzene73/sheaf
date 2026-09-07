@@ -1,4 +1,4 @@
-defmodule LiveViewPrimitives.Controls do
+defmodule Sheaf.Controls do
   @moduledoc """
   Headless, browser-owned controls. `default_value` is read when the hook mounts;
   later server patches do not reset the user's interaction state.

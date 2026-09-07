@@ -1,6 +1,6 @@
 defmodule Lab.ComponentsLive do
   use Phoenix.LiveView
-  import LiveViewPrimitives.Components
+  import Sheaf.Components
 
   def mount(_, _, socket), do: {:ok, assign(socket, country: "GB", action: "", saved: "")}
 

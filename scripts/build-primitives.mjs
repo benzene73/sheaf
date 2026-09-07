@@ -41,7 +41,7 @@ const imports = [...new Set(Object.values(result.metafile.outputs).flatMap(outpu
   output.imports.filter(item => item.external).map(item => item.path)))].sort();
 const packages = [...new Set(imports.map(name => name.startsWith('@') ? name.split('/').slice(0, 2).join('/') : name.split('/')[0]))];
 writeFileSync(resolve(destination, 'package.json'), JSON.stringify({
-  name: 'liveview-base-ui-primitives-local', private: true, type: 'module',
+  name: 'sheaf', private: true, type: 'module',
   main: './index.js', types: './types/liveview/index.d.ts',
   exports: {'.': {types: './types/liveview/index.d.ts', import: './index.js'}},
   dependencies: Object.fromEntries(packages.map(name => [name, manifest.dependencies[name]])),

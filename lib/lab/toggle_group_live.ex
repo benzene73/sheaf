@@ -1,6 +1,6 @@
 defmodule Lab.ToggleGroupLive do
   use Phoenix.LiveView
-  alias LiveViewPrimitives.Controls
+  alias Sheaf.Controls
 
   def mount(params, _, socket),
     do: {:ok, assign(socket, multiple: params["multiple"] == "true", values: ["grid"])}

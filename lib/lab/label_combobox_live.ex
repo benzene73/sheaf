@@ -1,6 +1,6 @@
 defmodule Lab.LabelComboboxLive do
   use Phoenix.LiveView
-  import LiveViewPrimitives.Combobox
+  import Sheaf.Combobox
 
   def mount(_, _, socket),
     do:

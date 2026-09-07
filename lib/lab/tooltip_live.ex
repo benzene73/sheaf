@@ -1,6 +1,6 @@
 defmodule Lab.TooltipLive do
   use Phoenix.LiveView
-  alias LiveViewPrimitives.Controls
+  alias Sheaf.Controls
 
   def render(assigns) do
     ~H"""

@@ -1,6 +1,6 @@
 defmodule Lab.NestedLive do
   use Phoenix.LiveView
-  alias LiveViewPrimitives.Components, as: Controls
+  alias Sheaf.Components, as: Controls
 
   def mount(_, _, socket), do: {:ok, assign(socket, country: "GB", saved: "", saves: 0)}
 

@@ -1,6 +1,6 @@
 defmodule Lab.MenuFormLive do
   use Phoenix.LiveView
-  import LiveViewPrimitives.Components
+  import Sheaf.Components
 
   def mount(_, _, socket), do: {:ok, assign(socket, submitted: "", submits: 0)}
 

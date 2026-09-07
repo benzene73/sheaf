@@ -5,7 +5,7 @@ defmodule Lab.HomeLive do
     ~H"""
     <main class="lab-home">
       <p class="lab-eyebrow">Phoenix LiveView · Base UI</p>
-      <h1>Primitives playground</h1>
+      <h1>Sheaf</h1>
       <p class="lab-intro">Try the controls, including their keyboard behavior. These are experimental ports of selected Base UI behaviors, with native browser primitives underneath where appropriate.</p>
       <div class="lab-grid">
         <.link :for={{title, path, description} <- [

@@ -1,6 +1,6 @@
 # Browser-owned controls
 
-Alias `LiveViewPrimitives.Controls` and register the exported hook collection.
+Alias `Sheaf.Controls` and register the exported hook collection.
 These helpers centralize structural markup, labels, IDs and ARIA. Supply classes
 for appearance. Unique string item values and a stable root ID are required.
 

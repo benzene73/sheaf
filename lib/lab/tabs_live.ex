@@ -1,6 +1,6 @@
 defmodule Lab.TabsLive do
   use Phoenix.LiveView
-  alias LiveViewPrimitives.Controls
+  alias Sheaf.Controls
 
   def mount(params, _, socket),
     do: {:ok, assign(socket, auto: params["auto"] == "true", selected: "overview")}

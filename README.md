@@ -1,4 +1,4 @@
-# LiveView primitives playground
+# Sheaf
 
 A source-traceable experiment porting selected **Base UI behaviors to Phoenix
 LiveView**. It combines translated policy functions, thin TypeScript hooks, native

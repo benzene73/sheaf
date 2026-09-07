@@ -1,4 +1,4 @@
-defmodule LiveViewPrimitives.Components do
+defmodule Sheaf.Components do
   @moduledoc """
   Headless markup for the lab's bounded LiveView hooks. Register the corresponding
   JavaScript hooks with LiveSocket. These components own structure and ARIA, not

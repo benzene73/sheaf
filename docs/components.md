@@ -1,11 +1,11 @@
 # Headless LiveView components
 
-`LiveViewPrimitives.Components` supplies structural markup for the completed bounded hooks. Import it into the application's HTML helpers, and register `PortedDialog`, `NativeMenu`, `NativeSelect` and `NativePositionedPopover` with LiveSocket. The component names are `dialog`, `menu`, `select` and `popover`. Alias the module instead if these names conflict with existing helpers.
+`Sheaf.Components` supplies structural markup for the completed bounded hooks. Import it into the application's HTML helpers, and register `PortedDialog`, `NativeMenu`, `NativeSelect` and `NativePositionedPopover` with LiveSocket. The component names are `dialog`, `menu`, `select` and `popover`. Alias the module instead if these names conflict with existing helpers.
 
 Every instance needs a unique, stable `id`. Child IDs and ARIA relationships derive from it. Classes style the root, trigger and popup; Menu/Select also expose `item_class`. Structural inline styles keep the native top layer and viewport bounds working, without supplying colors, typography or a theme. Avoid overriding those structural properties. Use caller CSS (including native dialog ::backdrop rules) for appearance.
 
 Other reusable helpers: [number fields, tabs, accordion, tooltip and toggle groups](controls.md)
-use `LiveViewPrimitives.Controls`. The [Combobox helper](combobox-component.md)
+use `Sheaf.Controls`. The [Combobox helper](combobox-component.md)
 has a separate server acceptance protocol. These APIs deliberately document
 their different state-ownership contracts rather than pretending every control
 supports the same server-controlled value API.

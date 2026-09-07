@@ -1,6 +1,6 @@
 # Combobox component and host contract
 
-Import `LiveViewPrimitives.Combobox` and register the JavaScript `PortedCombobox` hook. This helper centralizes the existing input/list/ARIA/ID contract; it does not add a selection server or remote search. Filtering runs locally over the supplied options. The public helper uses a manual native popover and the existing shared anchor-positioning policy. The popup matches input width, stays within available viewport bounds and scrolls internally; `popup_class` supplies visual styling. Input retains focus. It adds no backdrop, scroll lock or separate dismissal policy. Legacy consumers without popover="manual" retain their inline layout.
+Import `Sheaf.Combobox` and register the JavaScript `PortedCombobox` hook. This helper centralizes the existing input/list/ARIA/ID contract; it does not add a selection server or remote search. Filtering runs locally over the supplied options. The public helper uses a manual native popover and the existing shared anchor-positioning policy. The popup matches input width, stays within available viewport bounds and scrolls internally; `popup_class` supplies visual styling. Input retains focus. It adds no backdrop, scroll lock or separate dismissal policy. Legacy consumers without popover="manual" retain their inline layout.
 
 ```heex
 <.combobox id="favorite-fruit" label="Favorite fruit" name="profile[fruit]"

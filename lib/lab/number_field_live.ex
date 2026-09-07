@@ -1,6 +1,6 @@
 defmodule Lab.NumberFieldLive do
   use Phoenix.LiveView
-  alias LiveViewPrimitives.Controls
+  alias Sheaf.Controls
 
   def mount(_, _, socket), do: {:ok, assign(socket, value: 10, submitted: "", submits: 0)}
 

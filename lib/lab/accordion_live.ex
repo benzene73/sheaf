@@ -1,6 +1,6 @@
 defmodule Lab.AccordionLive do
   use Phoenix.LiveView
-  alias LiveViewPrimitives.Controls
+  alias Sheaf.Controls
 
   def render(assigns) do
     ~H"""

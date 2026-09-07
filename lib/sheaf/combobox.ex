@@ -1,4 +1,4 @@
-defmodule LiveViewPrimitives.Combobox do
+defmodule Sheaf.Combobox do
   @moduledoc """
   Structural markup for PortedCombobox's existing selection-acceptance bridge.
   Filtering is local. The host must implement the documented mount/intent/select
