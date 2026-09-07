@@ -16,7 +16,12 @@ hook or a complete Combobox port.
 | Same file: `commonOnKeyDown`, lines 568–686 | `navigateList`: vertical, virtual, non-grid branch extracted, React ref reads/writes become input and return value |
 
 Host adapter must open/show the list before scanning visible elements, supply
-`allowEscape: true` for the default editable Combobox, and keep input focused.
+`allowEscape: loopFocus && !autoHighlightMode` for the editable Combobox, and keep input focused.
+`AriaCombobox.tsx` also supplies `disabledIndices: EMPTY_ARRAY`: aria-disabled
+items remain highlightable during navigation, while selection rejects them.
+Opening still uses the separate scan that skips disabled attributes. Both the
+paired browser run and independent source review caught this consumer setting;
+the algorithm alone cannot determine the right policy for each component.
 The input is part of upstream's default loop: last → none → first, rather than
 last → first. `null` means a key is unhandled; `-1` means no active descendant.
 On first keyboard opening, use `getOpeningListIndex`; a closed ArrowUp must open
@@ -53,3 +58,6 @@ branches above count as ported source. Subsequent ports must have separate maps.
 When there are no eligible opening items, the raw opening helper can return an
 out-of-bounds sentinel as upstream does. The host must not publish that value as
 an aria-activedescendant. Arrow navigation itself normalizes out-of-bounds to -1.
+Non-typeable Home/End also return the raw min/max sentinel; their host must check
+that the returned row exists. That branch is not part of the initial paired
+editable-combobox gate.

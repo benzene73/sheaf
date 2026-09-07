@@ -26,7 +26,8 @@ export const PortedCombobox = {
         this.sync(); // Visibility must be established before upstream's scan.
         const index = wasOpen
           ? navigateList({list: rows, currentIndex: rows.findIndex((item: HTMLElement) => item.id === this.active),
-              key: event.key, loopFocus: this.el.dataset.loop !== 'false', allowEscape: true, typeable: true})
+              key: event.key, loopFocus: this.el.dataset.loop !== 'false', allowEscape: true,
+              typeable: true, disabledIndices: []})
           : getOpeningListIndex(rows, event.key);
         this.active = index == null ? this.active : rows[index]?.id ?? null;
         this.sync();
