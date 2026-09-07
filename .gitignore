@@ -1,0 +1,9 @@
+public/app.js
+artifacts/
+node_modules/
+deps/
+_build/
+.reference/
+*.log
+test-results/
+playwright-report/

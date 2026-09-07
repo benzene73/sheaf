@@ -1,0 +1,2 @@
+const {chromium}=require('C:/Users/benze/AppData/Roaming/npm/node_modules/@playwright/cli/node_modules/playwright');
+(async()=>{const b=await chromium.launch();const p=await b.newPage();p.on('console',m=>console.log(m.type(),m.text()));p.on('pageerror',e=>console.log('ERROR',e.message));p.on('response',r=>console.log(r.status(),r.url()));await p.goto('http://localhost:4010',{waitUntil:'domcontentloaded'});await p.waitForTimeout(1500);console.log(await p.locator('body').innerText());await b.close()})()
