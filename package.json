@@ -25,7 +25,8 @@
     "test:number-field": "node harness/number-field.mjs",
     "test:tabs": "node harness/tabs.mjs",
     "test:tooltip": "node harness/tooltip.mjs",
-    "test:accordion": "node harness/accordion.mjs"
+    "test:accordion": "node harness/accordion.mjs",
+    "test:toggle-group": "node harness/toggle-group.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",

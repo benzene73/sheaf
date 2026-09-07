@@ -19,7 +19,7 @@ try {
    const tooltip=page.getByTestId('tooltip-popup');
    if(scenario.action==='hover') await trigger.hover(); else await page.keyboard.press('Tab');
    await tooltip.waitFor({state:'visible'});
-   assert.equal(await tooltip.textContent(),'Helpful information');
+   assert.equal((await tooltip.textContent()).trim(),'Helpful information');
    const semantics={role:await tooltip.getAttribute('role'),describedBy:await trigger.getAttribute('aria-describedby')};
    if(scenario.action==='escape') {
     await page.keyboard.press('Escape'); await tooltip.waitFor({state:'hidden'});
@@ -38,4 +38,5 @@ try {
 writeFileSync(process.env.REPORT_PATH || 'artifacts/tooltip-results.json',JSON.stringify({at:new Date().toISOString(),browser:'chromium',results},null,2));
 console.log(`${results.filter(r=>r.pass).length}/${results.length} target scenarios passed`);
 if(results.some(r=>!r.pass)) process.exitCode=1;
+
 
