@@ -2,7 +2,8 @@ import {chromium, firefox, webkit} from 'playwright';
 import assert from 'node:assert/strict';
 import {mkdirSync, writeFileSync} from 'node:fs';
 const results=[];
-for (const [engine,launcher] of Object.entries({chromium,firefox,webkit})) {
+for (const engine of (process.env.BROWSERS || 'chromium').split(',')) {
+ const launcher = {chromium,firefox,webkit}[engine];
  const browser=await launcher.launch();
  try {for(const family of ['menu','select']) for(const modal of [true,false]) for(const target of ['upstream','liveview']) {
  const page=await browser.newPage();
