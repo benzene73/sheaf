@@ -1,13 +1,12 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
+const { buildSync } = require('esbuild');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'menu-typeahead-'));
 const output = path.join(directory, 'typeahead.cjs');
-execFileSync(process.env.ESBUILD_BINARY || 'D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe',
-  [path.join(__dirname, '../../src/behavior/menu-typeahead.ts'), '--bundle', '--platform=node', '--format=cjs', `--outfile=${output}`]);
+buildSync({ entryPoints: [path.join(__dirname, '../../src/behavior/menu-typeahead.ts')], bundle: true, platform: 'node', format: 'cjs', outfile: output });
 const { createMenuTypeahead } = require(output);
 process.on('exit', () => fs.rmSync(directory, { recursive: true, force: true }));
 function setup(overrides = {}) {

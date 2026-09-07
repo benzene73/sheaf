@@ -1,0 +1,9 @@
+# Independent native popup controller review
+
+Reviewed refactor of common native lifecycle from NativeMenu and NativePositionedPopover into NativePopupController. This is explicitly an adapter, not a port of FloatingFocusManager/useDismiss. Source-derived positioning and scroll ownership remain separate units.
+
+The class consistently owns one positioning instance and scroll lease; toggles destroy/release before acquiring replacements, destroy removes listeners before closing native UI, actual :popover-open drives refreshed aria-expanded. Consumer menu retains navigation/typeahead/activation; plain popover opts out of modal scroll/focus restoration. Full delegated dismissal/collection semantics are not claimed.
+
+Flagged absent disposed-method guards: a later openWithKey could reopen the layer after destroy without listeners/positioning/locking. Root added dead guards to openWithKey/close/refresh/destroy before browser verification. Tested actual newly bundled class with native popover in Chromium/Firefox/WebKit: synchronous open-close-open coalesces to one final open callback, positioned/aria-open state correct; destroy closes and releases scroll; attempted reopening after destroy remains closed/reported false. Script `artifacts/reviewer-popup-controller.cjs` and class bundle. These are standalone native adapter checks, not paired full-component evidence.
+
+No new blocking lifecycle defect found in the exercised refactor. Preserve explicit boundaries: parts currently assume stable element identity; open modal policy is not recomputed into a different lease merely by refresh; caller must recreate for configuration/part changes. `close(false)` still allows browser/default-focus effects plus fallback on a later close toggle, so do not market the argument as an unconditional no-focus guarantee. Existing shared Menu/positioning suites should rerun against rebuilt consumers before declaring regression-free integration.

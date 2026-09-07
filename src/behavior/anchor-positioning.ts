@@ -140,7 +140,6 @@ export function startAnchorPositioning(
 ) {
   let mounted = true;
   let latestUpdate = 0;
-  const options = createAnchorPositioningOptions({ ...params, isMounted: () => mounted });
   // Same initial-position and available-size seed policy as upstream styles.
   Object.assign(floating.style, { position: 'fixed', top: '0px', left: '0px', transform: '', opacity: '0' });
   delete floating.dataset.positioned;
@@ -149,6 +148,9 @@ export function startAnchorPositioning(
   async function update() {
     if (!mounted) return;
     const sequence = ++latestUpdate;
+    const options = createAnchorPositioningOptions({
+      ...params, isMounted: () => mounted && sequence === latestUpdate,
+    });
     const result = await computePosition(anchor, floating, options);
     if (!mounted || sequence !== latestUpdate) return;
     const dpr = floating.ownerDocument.defaultView?.devicePixelRatio || 1;

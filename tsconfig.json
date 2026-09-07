@@ -8,5 +8,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src/behavior/**/*.ts", "src/liveview/ported-combobox.ts", "src/liveview/native-positioned-popover.ts", "src/liveview/hook-types.ts"]
+  "include": ["src/behavior/**/*.ts", "src/liveview/**/*.ts"]
 }

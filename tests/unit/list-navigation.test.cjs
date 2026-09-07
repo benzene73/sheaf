@@ -1,13 +1,12 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
+const { buildSync } = require('esbuild');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'list-navigation-'));
 const output = path.join(directory, 'navigation.cjs');
-const esbuild = process.env.ESBUILD_BINARY || 'D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe';
-execFileSync(esbuild, [path.join(__dirname, '../../src/behavior/list-navigation.ts'), '--platform=node', '--format=cjs', `--outfile=${output}`]);
+buildSync({ entryPoints: [path.join(__dirname, '../../src/behavior/list-navigation.ts')], bundle: true, platform: 'node', format: 'cjs', outfile: output });
 const nav = require(output);
 process.on('exit', () => fs.rmSync(directory, { recursive: true, force: true }));
 

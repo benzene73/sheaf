@@ -1,10 +1,14 @@
 import {getOpeningListIndex, navigateList, isListIndexDisabled} from '../behavior/list-navigation';
+import {getFilter, resolveComboboxFilterQuery} from '../behavior/filter';
+import {createComboboxChangeController} from '../behavior/combobox-change';
 import {type ChangeEventDetails, createChangeEventDetails, runSingleInputKey, requestSingleSelectedValue,
   runSingleSelection, completeSingleClose} from '../behavior/combobox-input';
 
 import {type HookDefinition, requirePart} from './hook-types';
 
 interface SelectionReply {
+  component_id: string;
+  instance: string;
   request_id: number;
   generation: number;
   accepted: boolean;
@@ -19,6 +23,7 @@ interface PendingSelection {
   closeAfter: boolean;
 }
 interface ComboboxState {
+  instance: string;
   input: HTMLInputElement;
   list: HTMLElement;
   open: boolean;
@@ -30,10 +35,15 @@ interface ComboboxState {
   pending: PendingSelection | null;
   queryChanged: boolean;
   accepted: string | null;
+  queryValue: string;
+  composingValue: string | null;
+  change: ReturnType<typeof createComboboxChangeController>;
   dead?: boolean;
   keyboardActive?: boolean;
   onKey: (event: KeyboardEvent) => void;
-  onInput: () => void;
+  onInput: (event: Event) => void;
+  onCompositionStart: (event: CompositionEvent) => void;
+  onCompositionEnd: (event: CompositionEvent) => void;
   onPointerDown: (event: PointerEvent) => void;
   onClick: (event: MouseEvent) => void;
   onOutside: (event: PointerEvent) => void;
@@ -47,17 +57,24 @@ interface ComboboxMethods {
   propose(value: string | null, details: ChangeEventDetails, closeAfter: boolean): void;
   finishProposal(reply: SelectionReply): void;
   sync(): void;
+  setInput(value: string): void;
+  requestInput(value: string, details: ChangeEventDetails): void;
 }
 type IncomingEvents = { selection_result: SelectionReply };
 type OutgoingEvents = {
-  select: { value: string | null; request_id: number; generation: number };
-  intent: { generation: number };
+  combobox_mount: { component_id: string; instance: string };
+  select: { component_id: string; instance: string; value: string | null; request_id: number; generation: number };
+  intent: { component_id: string; instance: string; generation: number };
 };
 
 // Mapped behavior lives in ../behavior. This bridge deliberately delays selected
 // value continuation until LiveView accepts it; this is an adapter extension.
 export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, IncomingEvents, OutgoingEvents> = {
   mounted() {
+    if (!this.el.id) throw new Error('Combobox requires a unique DOM id');
+    this.instance = Array.from(crypto.getRandomValues(new Uint8Array(16)),
+      value => value.toString(16).padStart(2, '0')).join('');
+    this.pushEvent('combobox_mount', {component_id: this.el.id, instance: this.instance});
     this.input = requirePart(this.el, '[data-part=input]', HTMLInputElement);
     this.list = requirePart(this.el, '[data-part=list]', HTMLElement);
     this.open = false;
@@ -70,7 +87,26 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.handleEvent('selection_result', (reply: SelectionReply) => this.finishProposal(reply));
     this.queryChanged = false;
     this.accepted = this.el.dataset.accepted || null;
-    this.input.value = this.accepted || '';
+    this.queryValue = this.accepted || '';
+    this.composingValue = null;
+    this.input.value = this.queryValue;
+    this.change = createComboboxChangeController({
+      android: /Android/.test(navigator.userAgent),
+      getState: () => ({disabled: this.input.disabled, readOnly: this.input.readOnly,
+        open: this.open, openOnInputClick: true, autoHighlightEnabled: false,
+        activeIndex: this.active === null ? null : this.rows().findIndex(row => row.id === this.active)}),
+      setComposingValue: value => { this.composingValue = value; },
+      requestInput: (value, details) => {
+        this.requestInput(value, details);
+        if (!details.isCanceled) this.queryChanged = true;
+      },
+      requestValue: (value, details) => this.propose(value, details, false),
+      requestOpen: (open, details) => {
+        if (!open) this.close(details);
+        else { this.open = true; this.popupMounted = true; }
+      },
+      clearHighlight: () => { this.active = null; },
+    });
     this.onKey = (event: KeyboardEvent) => {
       const rows = this.rows();
       const index = rows.findIndex((item: HTMLElement) => item.id === this.active);
@@ -91,7 +127,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
         markKeyboard: () => { this.keyboardActive = true; },
         setCaret: (position: number) => this.input.setSelectionRange(position, position),
         setScrollLeft: (position: number) => { this.input.scrollLeft = position; },
-        requestInput: (value: string) => { this.input.value = value; },
+        requestInput: (value, details) => this.requestInput(value, details),
         requestValue: (value: null, details: ChangeEventDetails) => this.propose(value, details, false),
         requestOpen: (_value: false, details: ChangeEventDetails) => this.close(details),
         clickActive: (position: number, nativeEvent: Event) => this.select(rows[position], nativeEvent),
@@ -118,12 +154,18 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
         this.sync();
       }
     };
-    this.onInput = () => {
+    this.onInput = event => {
       if (this.input.readOnly || this.input.disabled) return;
       this.invalidate();
-      this.queryChanged = true;
-      this.active = null;
-      this.open = true; this.popupMounted = true;
+      this.change.onChange({currentTarget: this.input, nativeEvent: event});
+      this.sync();
+    };
+    this.onCompositionStart = event => {
+      this.invalidate();
+      this.change.onCompositionStart({currentTarget: this.input, nativeEvent: event});
+    };
+    this.onCompositionEnd = event => {
+      this.change.onCompositionEnd({currentTarget: this.input, nativeEvent: event});
       this.sync();
     };
     this.onPointerDown = (event: PointerEvent) => {
@@ -140,6 +182,8 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     };
     this.input.addEventListener('keydown', this.onKey);
     this.input.addEventListener('input', this.onInput);
+    this.input.addEventListener('compositionstart', this.onCompositionStart);
+    this.input.addEventListener('compositionend', this.onCompositionEnd);
     this.list.addEventListener('pointerdown', this.onPointerDown);
     this.list.addEventListener('click', this.onClick);
     this.el.ownerDocument.addEventListener('pointerdown', this.onOutside);
@@ -147,6 +191,12 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.el.dataset.fixtureReady = 'true';
   },
   allRows() { return Array.from(this.list.querySelectorAll<HTMLElement>('[role=option]')); },
+  setInput(value) { this.queryValue = value; this.input.value = value; },
+  requestInput(value, details) {
+    if (this.el.dataset.cancelInput === 'true') details.cancel();
+    if (details.isCanceled) this.input.value = this.queryValue;
+    else this.setInput(value);
+  },
   rows() { return this.allRows().filter((row: HTMLElement) => !row.hidden); },
   close(details: ChangeEventDetails) {
     if (this.el.dataset.cancelClose === 'true') details.cancel();
@@ -161,7 +211,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
       setQueryChanged: (value: boolean) => { this.queryChanged = value; },
       setCloseQuery: () => {},
       clearActiveIndex: () => { this.active = null; },
-      requestInput: (value: string) => { this.input.value = value; },
+      requestInput: (value, change) => this.requestInput(value, change),
     });
     this.sync();
   },
@@ -176,16 +226,18 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
   invalidate() {
     ++this.intent;
     this.pending = null;
-    this.pushEvent('intent', {generation: this.intent});
+    this.pushEvent('intent', {component_id: this.el.id, instance: this.instance, generation: this.intent});
   },
   propose(value: string | null, details: ChangeEventDetails, closeAfter: boolean) {
     const requestId = ++this.requestId;
     this.pending = {requestId, intent: this.intent, value, details, closeAfter};
-    this.pushEvent('select', {value, request_id: requestId, generation: this.intent});
+    this.pushEvent('select', {component_id: this.el.id, instance: this.instance,
+      value, request_id: requestId, generation: this.intent});
   },
   finishProposal(reply: SelectionReply) {
     const pending = this.pending;
-    if (this.dead || !pending || reply.request_id !== pending.requestId ||
+    if (this.dead || reply.component_id !== this.el.id || reply.instance !== this.instance ||
+        !pending || reply.request_id !== pending.requestId ||
         reply.generation !== this.intent || pending.intent !== this.intent) return;
     this.pending = null;
     if (reply.obsolete) return;
@@ -194,7 +246,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
       onValueChange: (_value: string | null, mutable: ChangeEventDetails) => { if (!reply.accepted) mutable.cancel(); },
       assignValue: () => { this.accepted = reply.value || null; },
       stringifyValueLabel: (item: string | null) => item || '',
-      requestInput: (text: string) => { this.input.value = text; },
+      requestInput: (text, change) => this.requestInput(text, change),
     });
     if (closeAfter) runSingleSelection(value, details, {
       requestSelectedValue, requestOpen: (_open: false, change: ChangeEventDetails) => this.close(change),
@@ -206,8 +258,13 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
   },
   sync() {
     this.list.hidden = !this.open;
+    const filter = getFilter();
+    const {filterQuery} = resolveComboboxFilterQuery({
+      open: this.open, closeQuery: null, inputValue: this.queryValue, single: true,
+      selectedLabel: this.accepted || '', queryChangedAfterOpen: this.queryChanged,
+    }, filter);
     for (const row of this.allRows()) {
-      row.hidden = this.queryChanged && !(row.textContent || '').toLowerCase().includes(this.input.value.toLowerCase());
+      row.hidden = !filter.contains(row.textContent || '', filterQuery);
     }
     this.input.setAttribute('aria-expanded', String(this.open));
     const row = this.open && this.rows().find((item: HTMLElement) => item.id === this.active);
@@ -218,6 +275,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     // Canonical reconciliation is independent of a pending interaction. A stale
     // continuation must not freeze the browser's accepted-value snapshot.
     this.accepted = this.el.dataset.accepted || null;
+    if (this.composingValue !== null) this.input.value = this.composingValue;
     this.sync();
   },
   destroyed() {
@@ -225,6 +283,8 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     ++this.intent;
     this.input.removeEventListener('keydown', this.onKey);
     this.input.removeEventListener('input', this.onInput);
+    this.input.removeEventListener('compositionstart', this.onCompositionStart);
+    this.input.removeEventListener('compositionend', this.onCompositionEnd);
     this.list.removeEventListener('pointerdown', this.onPointerDown);
     this.list.removeEventListener('click', this.onClick);
     this.el.ownerDocument.removeEventListener('pointerdown', this.onOutside);

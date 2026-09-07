@@ -1,14 +1,12 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
+const { buildSync } = require('esbuild');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'anchor-positioning-'));
 const output = path.join(directory, 'positioning.cjs');
-execFileSync(process.env.ESBUILD_BINARY || 'D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe',
-  [path.join(__dirname, '../../src/behavior/anchor-positioning.ts'), '--bundle', '--platform=node', '--format=cjs', `--outfile=${output}`],
-  { env: { ...process.env, NODE_PATH: process.env.NODE_PATH || 'D:/liveview-primitives-lab/node_modules' } });
+buildSync({ entryPoints: [path.join(__dirname, '../../src/behavior/anchor-positioning.ts')], bundle: true, platform: 'node', format: 'cjs', outfile: output });
 const port = require(output);
 process.on('exit', () => fs.rmSync(directory, { recursive: true, force: true }));
 const middleware = (options, name) => options.middleware.find(item => item?.name === name);

@@ -13,5 +13,8 @@ defmodule Lab.Router do
     pipe_through(:browser)
     live("/", Lab.Live)
     live("/paired", Lab.PairedLive)
+    live("/positioning", Lab.PositioningLive)
+    live("/menu", Lab.MenuLive)
+    live("/select", Lab.SelectLive)
   end
 end
