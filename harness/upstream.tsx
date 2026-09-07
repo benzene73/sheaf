@@ -8,6 +8,7 @@ import { Dialog } from '@base-ui/react/dialog';
 import { NumberField } from '@base-ui/react/number-field';
 import { Tabs } from '@base-ui/react/tabs';
 import { Tooltip } from '@base-ui/react/tooltip';
+import { Accordion } from '@base-ui/react/accordion';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -160,7 +161,9 @@ function TabsFixture() {
   </Tabs.Root><button>Outside</button></main>;
 }
 function TooltipFixture() { return <main data-fixture-ready="true"><Tooltip.Root disableHoverablePopup><Tooltip.Trigger delay={0} closeDelay={0} render={<button />}>Help</Tooltip.Trigger><Tooltip.Portal><Tooltip.Positioner sideOffset={8}><Tooltip.Popup data-testid="tooltip-popup">Helpful information</Tooltip.Popup></Tooltip.Positioner></Tooltip.Portal></Tooltip.Root><button style={{position:'fixed',right:20,top:200}}>Outside</button></main>; }
-createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : fixture === 'tabs' ? <TabsFixture /> : fixture === 'tooltip' ? <TooltipFixture /> : <Fixture />);
+function AccordionFixture() { return <main data-fixture-ready="true"><Accordion.Root>{['Overview','Reviews','Disabled'].map(label=><Accordion.Item key={label} value={label.toLowerCase()} disabled={label==='Disabled'}><Accordion.Header><Accordion.Trigger>{label}</Accordion.Trigger></Accordion.Header><Accordion.Panel>{label} content</Accordion.Panel></Accordion.Item>)}</Accordion.Root></main>; }
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : fixture === 'tabs' ? <TabsFixture /> : fixture === 'tooltip' ? <TooltipFixture /> : fixture === 'accordion' ? <AccordionFixture /> : <Fixture />);
+
 
 
 
