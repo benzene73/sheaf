@@ -6,7 +6,7 @@ defmodule Lab.ToggleGroupLive do
 
   def render(assigns) do
     ~H"""
-    <main id="toggle-group-fixture" phx-hook="PortedToggleGroup" data-multiple={to_string(@multiple)}>
+    <main id="toggle-group-fixture" phx-hook="PortedToggleGroup" data-value={Jason.encode!(@values)} data-multiple={to_string(@multiple)}>
       <div role="group" aria-label="View">
         <button :for={{value, label} <- [{"grid", "Grid"}, {"list", "List"}, {"disabled", "Disabled"}]}
           id={"toggle-#{value}"} type="button" data-value={value} disabled={value == "disabled"}
