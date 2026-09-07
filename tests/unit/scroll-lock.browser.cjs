@@ -1,13 +1,12 @@
-const { chromium, firefox, webkit } = require(process.env.PLAYWRIGHT_MODULE || 'D:/liveview-primitives-lab/node_modules/playwright');
+const { chromium, firefox, webkit } = require('playwright');
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
+const { buildSync } = require('esbuild');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const bundle = path.join(root, 'artifacts/scroll-lock.js');
-execFileSync(process.env.ESBUILD_BINARY || 'D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe',
-  [path.join(root, 'src/behavior/scroll-lock.ts'), '--bundle', '--platform=browser', '--format=iife', '--global-name=ScrollLockPort', `--outfile=${bundle}`],
-  { env: { ...process.env, NODE_PATH: process.env.NODE_PATH || 'D:/liveview-primitives-lab/node_modules' } });
+buildSync({ entryPoints: [path.join(root, 'src/behavior/scroll-lock.ts')], bundle: true, platform: 'browser', format: 'iife', globalName: 'ScrollLockPort', outfile: bundle,
+  nodePaths: require.resolve.paths('@floating-ui/utils/dom') ?? [] });
 (async () => {
   const results = [];
   for (const [name, type] of Object.entries({ chromium, firefox, webkit })) {

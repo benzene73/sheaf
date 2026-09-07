@@ -58,3 +58,13 @@ hidden force-mounted items and missing-element exclusion.
 No claims for multiple selection, default item-aligned positioning, scroll
 arrows, drag selection, touch virtualization, autofill or full form validation.
 Browser paired Select scenarios and independent review remain separate gates.
+
+## Select cancellation negative control
+
+Replace the two fresh createChangeEventDetails calls in runSelectItemSelection
+with one shared details object. The local test `Select canceled value still
+requests close with independent details` fails (1/10 failing), because value
+cancellation contaminates close. Restore original source byte-for-byte:10/10 pass.
+This independently challenges Select's distinct policy rather than assuming the
+Combobox cancellation contract applies. It is a unit negative control; paired
+browser mutation evidence remains separate.

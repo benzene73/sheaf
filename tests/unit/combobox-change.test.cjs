@@ -1,13 +1,12 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
+const { buildSync } = require('esbuild');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'combobox-change-'));
 const output = path.join(directory, 'change.cjs');
-execFileSync(process.env.ESBUILD_BINARY || 'D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe',
-  [path.join(__dirname, '../../src/behavior/combobox-change.ts'), '--bundle', '--platform=node', '--format=cjs', `--outfile=${output}`]);
+buildSync({ entryPoints: [path.join(__dirname, '../../src/behavior/combobox-change.ts')], bundle: true, platform: 'node', format: 'cjs', outfile: output });
 const { createComboboxChangeController } = require(output);
 process.on('exit', () => fs.rmSync(directory, { recursive: true, force: true }));
 function event(value, inputType = 'insertText', type = 'input') {

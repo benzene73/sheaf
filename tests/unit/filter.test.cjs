@@ -1,13 +1,12 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { execFileSync } = require('node:child_process');
+const { buildSync } = require('esbuild');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'collator-filter-'));
 const output = path.join(directory, 'filter.cjs');
-execFileSync(process.env.ESBUILD_BINARY || 'D:/kaguya/assets/node_modules/@esbuild/win32-x64/esbuild.exe',
-  [path.join(__dirname, '../../src/behavior/filter.ts'), '--platform=node', '--format=cjs', `--outfile=${output}`]);
+buildSync({ entryPoints: [path.join(__dirname, '../../src/behavior/filter.ts')], bundle: true, platform: 'node', format: 'cjs', outfile: output });
 const port = require(output);
 process.on('exit', () => fs.rmSync(directory, { recursive: true, force: true }));
 test('default case/accent sensitivity matches equal-length substrings', () => {
