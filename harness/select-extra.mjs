@@ -71,7 +71,7 @@ function snapshot() {
     value: output("select-value"),
     submitted: output("select-submitted-value"),
     submits: Number(output("select-submit-count")),
-    outside: Number(output("select-outside-count")),
+    outside: Number(output("outside-click-count")),
     formValue: String(
       new FormData(document.querySelector("form")).get("fruit") || "",
     ),

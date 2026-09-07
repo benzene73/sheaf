@@ -61,6 +61,25 @@ async function inputEvent(page, value, inputType) {
 }
 const scenarios = [
   {
+    name: "canceled input change restores displayed value",
+    query: "?cancelInput=true",
+    async run(page) {
+      await page.getByRole("combobox", { name: "Fruit" }).fill("Cherry");
+      return [await observe(page, { input: "", accepted: "", open: false })];
+    },
+  },
+  {
+    name: "canceled composition end restores canonical input",
+    query: "?cancelInput=true",
+    async run(page) {
+      await page.locator("[role=combobox]").dispatchEvent("compositionstart", { data: "" });
+      await inputEvent(page, "ch", "insertCompositionText");
+      const during = await observe(page, { input: "ch", open: true, options: ["Apple", "Banana", "Cherry"] });
+      await page.locator("[role=combobox]").dispatchEvent("compositionend", { data: "ch" });
+      return [during, await observe(page, { input: "", open: true, options: ["Apple", "Banana", "Cherry"] })];
+    },
+  },
+  {
     name: "clearing selected text clears canonical selection",
     query: "?defaultValue=Apple",
     async run(page) {

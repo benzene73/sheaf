@@ -18,6 +18,7 @@ function Fixture() {
     <h1>Pinned Base UI React reference</h1>
     <form onSubmit={event => { event.preventDefault(); setSubmits(count => count + 1); setSubmitted(String(new FormData(event.currentTarget).get('fruit') || '')); }}>
     <Combobox.Root name="fruit" items={fixtureItems} value={accepted} loopFocus={loopFocus}
+      onInputValueChange={(_value, details) => { if (params.get('cancelInput') === 'true') details.cancel(); }}
       readOnly={params.get('readOnly') === 'true'}
       onValueChange={(value, details) => {
         setValueChanges(count => count + 1);
@@ -47,21 +48,25 @@ function Fixture() {
 }
 function PositioningFixture() {
   const params = new URLSearchParams(location.search);
+  const behavior = params.get('behavior') === 'true';
+  const [actions, setActions] = React.useState(0);
+  const [outsideClicks, setOutsideClicks] = React.useState(0);
   const size = params.get('size') || 'tall';
   const width = size === 'wide' ? 1000 : 200;
   const height = size === 'tall' ? 1000 : 100;
   return <main data-fixture-ready="true">
-    <Popover.Root>
+    <Popover.Root modal={params.get('modal') === 'true'}>
       <Popover.Trigger data-testid="anchor" style={{ position: 'fixed', bottom: 8, left: 16, width: 100, height: 40 }}>Open popup</Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner data-testid="positioner" side="bottom" sideOffset={8} collisionPadding={12}
           collisionAvoidance={{ fallbackAxisSide: 'none' }}>
           <Popover.Popup data-testid="popup" style={{ boxSizing: 'border-box', width, height, maxWidth: 'var(--available-width)', maxHeight: 'var(--available-height)', background: '#ddd', overflow: 'auto' }}>
-            Popup content
+            {behavior ? <><button onClick={() => setActions(n => n + 1)}>Inside</button><button>Last</button></> : 'Popup content'}
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
     </Popover.Root>
+    {behavior && <><output data-testid="popover-action-count">{actions}</output><output data-testid="outside-click-count">{outsideClicks}</output><button style={{ position: 'fixed', right: 20, top: 20 }} onClick={() => setOutsideClicks(n => n + 1)}>Outside</button></>}
   </main>;
 }
 function MenuFixture() {
@@ -103,7 +108,7 @@ function SelectFixture() {
     <output data-testid="select-change-count">{changes}</output>
     <output data-testid="select-submit-count">{submits}</output>
     <output data-testid="select-submitted-value">{submitted}</output>
-    <output data-testid="select-outside-count">{outsideClicks}</output>
+    <output data-testid="outside-click-count">{outsideClicks}</output>
     <button type="button" onClick={() => setOutsideClicks(n => n + 1)} style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
   </main>;
 }
