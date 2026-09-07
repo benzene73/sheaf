@@ -101,19 +101,32 @@ test('selection assignment and new input details precede independently cancellab
 });
 test('close completion clears transient state before restoring accepted label', () => {
   const calls = [];
-  port.completeSingleClose({ inputValue: 'Applexyz', selectedLabel: 'Apple' }, {
+  port.completeSingleClose({ selectedLabel: 'Apple' }, {
     setMounted: () => calls.push('mounted'), onOpenChangeComplete: () => calls.push('complete'),
     setQueryChanged: () => calls.push('query'), setCloseQuery: () => calls.push('closeQuery'),
-    clearActiveIndex: () => calls.push('active'), requestInput(value, details) { calls.push([value, details.reason]); },
+    clearActiveIndex: () => calls.push('active'), getInputValue: () => 'Applexyz', requestInput(value, details) { calls.push([value, details.reason]); },
   });
   assert.deepEqual(calls, ['mounted', 'complete', 'query', 'closeQuery', 'active', ['Apple', 'none']]);
 });
 test('completion skips missing/equal input and marks empty restoration as input-clear', () => {
   const values = [];
+  let inputValue = null;
   const effects = { setMounted() {}, setQueryChanged() {}, setCloseQuery() {}, clearActiveIndex() {},
-    requestInput(value, details) { values.push([value, details.reason]); } };
-  port.completeSingleClose({ inputValue: null, selectedLabel: 'Apple' }, effects);
-  port.completeSingleClose({ inputValue: 'Apple', selectedLabel: 'Apple' }, effects);
-  port.completeSingleClose({ inputValue: 'xyz', selectedLabel: '' }, effects);
+    getInputValue: () => inputValue, requestInput(value, details) { values.push([value, details.reason]); } };
+  port.completeSingleClose({ selectedLabel: 'Apple' }, effects);
+  inputValue = 'Apple';
+  port.completeSingleClose({ selectedLabel: 'Apple' }, effects);
+  inputValue = 'xyz';
+  port.completeSingleClose({ selectedLabel: '' }, effects);
   assert.deepEqual(values, [['', 'input-clear']]);
+});
+test('completion reads input after callback effects rather than stale snapshot', () => {
+  let inputValue = 'old query';
+  const resets = [];
+  port.completeSingleClose({ selectedLabel: 'Apple' }, {
+    setMounted() {}, onOpenChangeComplete() { inputValue = 'Apple'; },
+    setQueryChanged() {}, setCloseQuery() {}, clearActiveIndex() {},
+    getInputValue: () => inputValue, requestInput(value) { resets.push(value); },
+  });
+  assert.deepEqual(resets, []);
 });

@@ -1,7 +1,7 @@
 # Proposed next source translation: single Combobox input lifecycle
 
 Status: extracted in `src/behavior/combobox-input.ts` after coordinator confirmed
-independent navigation gate. Twelve direct unit tests pass; removal of the
+independent navigation gate. Thirteen direct unit tests pass; removal of the
 selected-value cancellation guard causes test 9 to fail; restored source passes.
 Paired browser and independent review of this second slice are still pending.
 Pin: `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`.
@@ -90,6 +90,13 @@ NOT be interpreted as preventDefault. The no-highlight Enter branch returns true
 but deliberately allows native form submission. Active indices use null for none
 (the list-navigation adapter must convert its -1 sentinel).
 
+`completeSingleClose` takes `{selectedLabel}` and effects including
+`getInputValue(): string | null`. It reads that getter AFTER completion callback
+and transient cleanup, matching upstream's late DOM read rather than a stale
+input snapshot. Null means input ref is absent; selectedLabel corresponds to the
+captured selected-value render closure. This matters for callbacks that mutate
+or remove the input during close completion.
+
 `createChangeEventDetails` directly translates the upstream helper's mutable
 closure/getter semantics and custom-property spread order. Its TypeScript type
 uses general Event rather than upstream's full reason-specific event union.
@@ -141,7 +148,7 @@ LiveView delayed-ack tests rather than weakening shared upstream scenarios.
 
 ## Local test scope and negative control
 
-Run `node --test tests/unit/combobox-input.test.cjs`. Twelve tests check callback
+Run `node --test tests/unit/combobox-input.test.cjs`. Thirteen tests check callback
 ordering, cancellation, event propagation, readOnly Enter, no-highlight native
 submission policy, code229 guard, RTL/Gecko caret decisions and close restoration.
 These are effect-double tests, not browser integration evidence.
@@ -156,3 +163,5 @@ Negative control run: remove `if (details.isCanceled) return` immediately after
 onValueChange in requestSingleSelectedValue. Test9 fails because rejected values
 reach assignment/input effects. Source was restored byte-for-byte and all12 pass.
 This is separate from, and does not substitute for, paired browser mutation tests.
+The thirteenth test exercises a completion callback changing the input before
+the restoration check; the final suite passes all13.

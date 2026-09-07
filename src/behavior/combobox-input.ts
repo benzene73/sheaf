@@ -158,18 +158,20 @@ export interface SingleCloseEffects {
   setQueryChanged(value: false): void;
   setCloseQuery(value: null): void;
   clearActiveIndex(): void;
+  getInputValue(): string | null;
   requestInput(value: string, details: ChangeEventDetails): void;
 }
 /** handleUnmount's single/outside branch. Call at completion, never at request time. */
 export function completeSingleClose(
-  state: { inputValue: string | null; selectedLabel: string }, effects: SingleCloseEffects,
+  state: { selectedLabel: string }, effects: SingleCloseEffects,
 ): void {
   effects.setMounted(false);
   effects.onOpenChangeComplete?.(false);
   effects.setQueryChanged(false);
   effects.setCloseQuery(null);
   effects.clearActiveIndex();
-  if (state.inputValue !== null && state.inputValue !== state.selectedLabel) {
+  const inputValue = effects.getInputValue();
+  if (inputValue !== null && inputValue !== state.selectedLabel) {
     effects.requestInput(state.selectedLabel,
       createChangeEventDetails(state.selectedLabel === '' ? 'input-clear' : 'none'));
   }
