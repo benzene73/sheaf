@@ -10,7 +10,9 @@
     "test:lifecycle": "node harness/lifecycle.mjs",
     "test:positioning": "node harness/positioning.mjs",
     "test:menu": "node harness/menu.mjs",
-    "test:filtering": "node harness/filtering.mjs"
+    "test:filtering": "node harness/filtering.mjs",
+    "test:menu-scroll": "node harness/menu-scroll.mjs",
+    "test:select": "node harness/select.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",

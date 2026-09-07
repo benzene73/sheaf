@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Combobox } from '@base-ui/react/combobox';
 import { Popover } from '@base-ui/react/popover';
 import { Menu } from '@base-ui/react/menu';
+import { Select } from '@base-ui/react/select';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -81,4 +82,20 @@ function MenuFixture() {
   </main>;
 }
 const fixture = new URLSearchParams(location.search).get('fixture');
-createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : <Fixture />);
+function SelectFixture() {
+  const params = new URLSearchParams(location.search);
+  const [value, setValue] = React.useState<string | null>(params.get('defaultValue'));
+  const [changes, setChanges] = React.useState(0);
+  return <main data-fixture-ready="true">
+    <Select.Root value={value} onValueChange={(next, details) => { setChanges(n => n + 1); if (params.get('cancelValue') === 'true') details.cancel(); else setValue(next); }}>
+      <Select.Trigger aria-label="Choose fruit"><Select.Value placeholder="Choose" /></Select.Trigger>
+      <Select.Portal><Select.Positioner alignItemWithTrigger={false}><Select.Popup>
+        {['Alpha', 'Beta', 'Bravo', 'Charlie'].map(label => <Select.Item key={label} value={label} disabled={label === 'Beta'}><Select.ItemText>{label}</Select.ItemText></Select.Item>)}
+      </Select.Popup></Select.Positioner></Select.Portal>
+    </Select.Root>
+    <output data-testid="select-value">{value || ''}</output>
+    <output data-testid="select-change-count">{changes}</output>
+    <button type="button">Outside</button>
+  </main>;
+}
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : <Fixture />);
