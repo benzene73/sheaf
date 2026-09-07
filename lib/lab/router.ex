@@ -19,6 +19,7 @@ defmodule Lab.Router do
     live("/label-combobox", Lab.LabelComboboxLive)
     live("/positioning", Lab.PositioningLive)
     live("/menu", Lab.MenuLive)
+    live("/menu-form", Lab.MenuFormLive)
     live("/select", Lab.SelectLive)
     live("/dialog", Lab.DialogLive)
     live("/number-field", Lab.NumberFieldLive)

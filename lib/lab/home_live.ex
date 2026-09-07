@@ -12,6 +12,7 @@ defmodule Lab.HomeLive do
           {"Combobox", "/paired", "Search, choose, validate on the server, and keep editing without stale replies taking over."},
           {"Combobox labels", "/label-combobox", "Display a readable label while storing and submitting its stable ID."},
           {"Menu", "/menu", "Actions with keyboard navigation, typeahead, focus restoration, and outside dismissal."},
+          {"Menu form actions", "/menu-form", "Native submit buttons keep their form name and value with keyboard or pointer activation."},
           {"Select", "/select", "Choose a value with the keyboard or pointer; submit it through a normal form."},
           {"Popover", "/positioning?behavior=true&size=normal", "Positioned content with keyboard focus and viewport collision handling."},
           {"Dialog", "/dialog", "A native modal with controlled dismissal, form updates, and browser-managed focus."},

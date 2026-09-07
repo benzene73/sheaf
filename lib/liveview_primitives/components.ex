@@ -46,7 +46,7 @@ defmodule LiveViewPrimitives.Components do
   attr(:label, :string, required: true)
 
   attr(:options, :list,
-    required: true,
+    default: [],
     doc: "Maps with string :value, :label and optional boolean :disabled."
   )
 
@@ -58,6 +58,7 @@ defmodule LiveViewPrimitives.Components do
   attr(:item_class, :string, default: nil)
   attr(:rest, :global)
   slot(:trigger, required: true)
+  slot(:native_actions, doc: "Caller-owned form containing menu_submit controls.")
 
   def menu(assigns) do
     assigns = structural_styles(assigns)
@@ -75,6 +76,7 @@ defmodule LiveViewPrimitives.Components do
           <div :for={option <- @options} id={@id <> "-item-" <> URI.encode_www_form(option.value)}
             data-value={option.value} role="menuitem" tabindex="-1"
             aria-disabled={to_string(Map.get(option, :disabled, false))} class={@item_class}>{option.label}</div>
+          {render_slot(@native_actions)}
         </div>
       </div>
     </div>
@@ -178,6 +180,26 @@ defmodule LiveViewPrimitives.Components do
         </div>
       </div>
     </div>
+    """
+  end
+
+  attr(:name, :string, required: true)
+  attr(:value, :string, required: true)
+  attr(:disabled, :boolean, default: false)
+  attr(:class, :string, default: nil)
+
+  attr(:rest, :global,
+    include: ~w(form formaction formenctype formmethod formnovalidate formtarget)
+  )
+
+  slot(:inner_block, required: true)
+
+  def menu_submit(assigns) do
+    ~H"""
+    <button {@rest} type="submit" role="menuitem" tabindex="-1" data-native-action
+      name={@name} value={@value} aria-disabled={to_string(@disabled)} class={@class}>
+      {render_slot(@inner_block)}
+    </button>
     """
   end
 

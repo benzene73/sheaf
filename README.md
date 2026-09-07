@@ -33,7 +33,7 @@ and WSL builds in the same `_build` directory causes needless recompilation.
 | Family | Demo | Scope |
 | --- | --- | --- |
 | Combobox | `/paired`, `/label-combobox` | Filtering, distinct labels/IDs, positioned popup, selection acknowledgements |
-| Menu | `/menu` | Single-level actions, navigation, typeahead, dismissal |
+| Menu | `/menu`, `/menu-form` | Single-level actions, native form submissions, navigation, typeahead, dismissal |
 | Select | `/select` | Single selection, forms, accepted-value reconciliation |
 | Popover | `/positioning?behavior=true&size=normal` | Collision positioning, native top layer, bounded focus policy |
 | Dialog | `/dialog` | Native modal, cancelable dismissal, form patches |

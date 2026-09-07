@@ -35,13 +35,28 @@ A Close button is included; customize `close_label` and `close_class`. `cancel_c
 
 Options are maps with unique string `value`, string `label`, and optional boolean `disabled`. Actions emit `menu_action` with `%{"component_id" => id, "value" => value}`. Validate the ID/action and authorization in the host. `keep_open` defaults false; `modal` defaults true and means the existing pointer/scroll policy, not a new accessibility-isolation guarantee. This API exposes action rows, not navigation links or nested menus.
 
+### Native form actions
+
+```heex
+<.menu id="archive-menu" label="Actions">
+  <:trigger>Actions</:trigger>
+  <:native_actions>
+    <.form for={@form} id="archive-form" phx-submit="archive">
+      <.menu_submit name="action" value="archive">Archive</.menu_submit>
+    </.form>
+  </:native_actions>
+</.menu>
+```
+
+The optional native_actions slot owns the form; menu_submit supplies a real submit button with native menu-item semantics. Native actions close the menu without also emitting menu_action, preserving the submitter name/value and form attributes. Disabled items remain focusable but cannot submit. This bounded API supports form buttons, not arbitrary navigation-link rendering. Do not nest a form inside another form; use the button's form attribute when associating with an existing form outside the popup.
+
 ## Select
 
 ```heex
 <.select id="country" label="Country" name="profile[country]" value={@country}
   options={[%{value: "GB", label: "United Kingdom"}, %{value: "IN", label: "India"}]}
   placeholder="Choose country">
-  <:trigger><span aria-hidden="true">⌄</span></:trigger>
+  <:trigger><span aria-hidden="true">&#8964;</span></:trigger>
 </.select>
 ```
 

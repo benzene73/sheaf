@@ -67,3 +67,18 @@ covered by the focused source-policy test, not those zero-delay browser cases.
 No expansion of passing families into further edge-case matrices was performed.
 Component mappings, state-ownership docs and the adoption assessment describe
 what remains unimplemented or unverified.
+
+## Final native-menu integration addendum
+
+After the core 22-suite gate, native form actions were added through the public
+menu/native_actions/menu_submit API. Four shared cases passed on React and
+LiveView (8 target executions), and the existing 16 Menu cases passed again
+(32 target executions). See `2026-09-07-menu-native-submit.md`. This brings the
+unique shared-scenario count to 109 (218 target executions), without rerunning
+unaffected families. The current browser runner contains 23 suites; the full
+23-suite command was not rerun as a separate batch.
+
+After this implementation change, TypeScript, all 111 unit tests, the private
+ESM/declaration build, WSL formatting and compilation passed. Independent source
+review found no blocker in the bounded native-submit path. Native anchor/link
+items and arbitrary external form ownership remain outside that browser gate.

@@ -42,7 +42,7 @@ If a segment is instead an operational filter, ordinary pressed buttons or a sin
 
 `D:/nila/lib/nila_web/components/menu.ex:1` already centralizes native popover menus. The colocated ActionMenuPopover opens first/last from ArrowDown/Up, handles arrows/Home/End/Escape/Tab, restores trigger focus and uses native top-layer dismissal. Its `positionMenu` around line139 still maintains its own viewport placement. The lab offers richer typeahead and a shared positioning/cleanup implementation, but adopting it is a consolidation and feature improvement, not proof the current component is unusable.
 
-Preserve submit-button `form/name/value`, `phx-target`, destructive styling and existing event ownership. A lab item action fixture does not automatically cover those form submits. Pilot one menu before replacing this shared component.
+Preserve submit-button `form/name/value`, `phx-target`, destructive styling and existing event ownership. The native-submit extension now covers Enter, Space and pointer submission with submitter name/value, plus disabled activation. It does not verify Nila-specific phx-target routing or forms outside the popup. Pilot one actual menu before replacing this shared component.
 
 ## 5. Nila searchable selection: useful existing semantics must survive
 

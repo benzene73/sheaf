@@ -2,7 +2,7 @@ import {createMenuTypeahead} from '../behavior/menu-typeahead';
 import {getOpeningListIndex, navigateList, isListIndexDisabled} from '../behavior/list-navigation';
 import {NativePopupController} from './native-popup-controller';
 import {requirePart, type HookDefinition} from './hook-types';
-import {activateMenuItemKey} from '../behavior/menu-activation';
+import {activateMenuItemKey, suppressMenuItemKeyUp, dispatchMenuItemClick} from '../behavior/menu-activation';
 
 interface State {
   anchor: HTMLButtonElement;
@@ -15,6 +15,7 @@ interface State {
   controller: NativePopupController;
   onTriggerKey: (event: KeyboardEvent) => void;
   onPopupKey: (event: KeyboardEvent) => void;
+  onPopupKeyUp: (event: KeyboardEvent) => void;
   onClick: (event: MouseEvent) => void;
   onBlur: (event: FocusEvent) => void;
 }
@@ -78,6 +79,15 @@ export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {compo
         event.preventDefault(); this.focusIndex(next); return;
       }
       const row = rows[index];
+      if (row instanceof HTMLButtonElement && row.hasAttribute('data-native-action')) {
+        const disabled = isListIndexDisabled(rows, index);
+        // aria-disabled remains focusable; it must not perform native submission.
+        if (disabled && (event.key === 'Enter' || event.key === ' ')) event.preventDefault();
+        if (activateMenuItemKey({disabled, typing: this.typing, isCurrentTarget: event.target === row,
+          nativeButton: true, isButton: true}, event, () => dispatchMenuItemClick(row, event))) return;
+        this.typeahead.onKeyDown(event);
+        return;
+      }
       if (row && activateMenuItemKey({disabled: isListIndexDisabled(rows, index),
         typing: this.typing, isCurrentTarget: event.target === row}, event,
         () => this.activate(row))) {
@@ -85,10 +95,27 @@ export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {compo
       }
       this.typeahead.onKeyDown(event);
     };
+    this.onPopupKeyUp = event => {
+      const row = event.target instanceof Element ? event.target.closest('[role=menuitem]') : null;
+      if (row instanceof HTMLButtonElement && row.hasAttribute('data-native-action') && this.popup.contains(row)) {
+        suppressMenuItemKeyUp({disabled: row.disabled || row.getAttribute('aria-disabled') === 'true',
+          isCurrentTarget: event.target === row, nativeButton: true, isButton: true}, event);
+      }
+    };
     this.onClick = event => {
       const target = event.target;
       const row = target instanceof Element ? target.closest('[role=menuitem]') : null;
-      if (row instanceof HTMLElement && this.popup.contains(row)) this.activate(row);
+      if (row instanceof HTMLElement && this.popup.contains(row)) {
+        if (row instanceof HTMLButtonElement && row.hasAttribute('data-native-action')) {
+          if (row.disabled || isListIndexDisabled(this.rows(), this.rows().indexOf(row))) {
+            event.preventDefault(); return;
+          }
+          if (!event.defaultPrevented && this.el.dataset.keepOpen !== 'true') this.close();
+          // Preserve native form/default action; do not also emit menu_action.
+          return;
+        }
+        this.activate(row);
+      }
     };
     this.onBlur = event => {
       const next = event.relatedTarget;
@@ -96,6 +123,7 @@ export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {compo
     };
     this.anchor.addEventListener('keydown', this.onTriggerKey);
     this.popup.addEventListener('keydown', this.onPopupKey);
+    this.popup.addEventListener('keyup', this.onPopupKeyUp);
     this.popup.addEventListener('click', this.onClick);
     this.el.addEventListener('focusout', this.onBlur);
     this.el.dataset.fixtureReady = 'true';
@@ -118,6 +146,7 @@ export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {compo
     this.typeahead.destroy(); this.controller.destroy();
     this.anchor.removeEventListener('keydown', this.onTriggerKey);
     this.popup.removeEventListener('keydown', this.onPopupKey);
+    this.popup.removeEventListener('keyup', this.onPopupKeyUp);
     this.popup.removeEventListener('click', this.onClick);
     this.el.removeEventListener('focusout', this.onBlur);
   },
