@@ -5,6 +5,7 @@ import { Popover } from '@base-ui/react/popover';
 import { Menu } from '@base-ui/react/menu';
 import { Select } from '@base-ui/react/select';
 import { Dialog } from '@base-ui/react/dialog';
+import { NumberField } from '@base-ui/react/number-field';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -136,4 +137,16 @@ function SelectFixture() {
     <button type="button" onClick={() => setOutsideClicks(n => n + 1)} style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
   </main>;
 }
-createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : <Fixture />);
+function NumberFixture() {
+  const [value, setValue] = React.useState<number | null>(10);
+  const [submitted, setSubmitted] = React.useState('');
+  const [submits, setSubmits] = React.useState(0);
+  return <main data-fixture-ready="true"><form onSubmit={event => { event.preventDefault(); setSubmitted(String(new FormData(event.currentTarget).get('amount') || '')); setSubmits(n => n + 1); }}>
+    <NumberField.Root name="amount" value={value} onValueChange={setValue} min={0} max={100} step={0.5} locale="en-US" format={{ maximumFractionDigits: 2 }}>
+      <NumberField.Group><NumberField.Decrement aria-label="Decrease">−</NumberField.Decrement><NumberField.Input aria-label="Amount" /><NumberField.Increment aria-label="Increase">+</NumberField.Increment></NumberField.Group>
+    </NumberField.Root>
+    <button type="submit">Submit</button></form><button>Outside</button>
+    <output data-testid="number-value">{value == null ? '' : String(value)}</output><output data-testid="number-submitted-value">{submitted}</output><output data-testid="number-submit-count">{submits}</output>
+  </main>;
+}
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : <Fixture />);
