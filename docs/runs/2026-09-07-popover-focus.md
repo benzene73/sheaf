@@ -16,3 +16,16 @@ The shared tests use actual keyboard and pointer interactions. Current scope is
 initial keyboard focus, Tab between controls, Escape restoration, inside action
 remaining open, and modal/nonmodal outside activation policy. This is not a
 complete focus manager, nested-layer or screen-reader conformance claim.
+
+After integrating the source-derived focus controller, Chromium passed **12/12**
+paired behavior executions. Geometry remained **10/10**. User steering changed
+the remaining run scope to Chromium only; these new fixes have no updated
+Firefox/WebKit verification. Raw reports: `artifacts/popover-focus-chromium.json`
+and `artifacts/positioning-focus-chromium.json`.
+
+Four LiveView-specific lifecycle cases also passed on Chromium: a patch during
+composition preserves visible composition text and deferred filtering; removing
+or replacing the highlighted row clears the dangling active descendant; unmount
+and remount isolate old pending proposal ownership from the new instance.
+Raw report: `artifacts/liveview-lifecycle-chromium.json`. These are LiveView
+adapter tests, not additional upstream parity cases.

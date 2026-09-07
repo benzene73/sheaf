@@ -19,7 +19,8 @@
     "test:select-extra": "node harness/select-extra.mjs",
     "test:composition": "node harness/composition.mjs",
     "test:popover-behavior": "node harness/popover-behavior.mjs",
-    "test:liveview-lifecycle": "node harness/liveview-lifecycle.mjs"
+    "test:liveview-lifecycle": "node harness/liveview-lifecycle.mjs",
+    "test:dialog": "node harness/dialog.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",

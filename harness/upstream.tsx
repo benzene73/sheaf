@@ -4,6 +4,7 @@ import { Combobox } from '@base-ui/react/combobox';
 import { Popover } from '@base-ui/react/popover';
 import { Menu } from '@base-ui/react/menu';
 import { Select } from '@base-ui/react/select';
+import { Dialog } from '@base-ui/react/dialog';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -87,6 +88,29 @@ function MenuFixture() {
   </main>;
 }
 const fixture = new URLSearchParams(location.search).get('fixture');
+function DialogFixture() {
+  const params = new URLSearchParams(location.search);
+  const [saved, setSaved] = React.useState('');
+  const [saves, setSaves] = React.useState(0);
+  const [outside, setOutside] = React.useState(0);
+  const [closeRequests, setCloseRequests] = React.useState(0);
+  return <main data-fixture-ready="true">
+    <Dialog.Root disablePointerDismissal={params.get('disablePointerDismissal') === 'true'} onOpenChange={(open, details) => { if (!open) { setCloseRequests(n => n + 1); if (params.get('cancelClose') === 'true') details.cancel(); } }}>
+      <Dialog.Trigger data-testid="dialog-trigger">Open dialog</Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Backdrop style={{ position: 'fixed', inset: 0, background: '#0004' }} />
+        <Dialog.Popup aria-label="Dialog fixture" style={{ position: 'fixed', top: '30%', left: '30%', width: 300, padding: 20, background: '#fff' }}>
+          <form onSubmit={event => { event.preventDefault(); setSaved(String(new FormData(event.currentTarget).get('name') || '')); setSaves(n => n + 1); }}>
+            <label>Name<input name="name" /></label><button type="submit">Save</button>
+          </form>
+          <Dialog.Close>Close</Dialog.Close>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+    <output data-testid="dialog-saved-name">{saved}</output><output data-testid="dialog-save-count">{saves}</output><output data-testid="dialog-close-requests">{closeRequests}</output>
+    <output data-testid="outside-click-count">{outside}</output><button style={{ position: 'fixed', right: 20, top: 20 }} onClick={() => setOutside(n => n + 1)}>Outside</button>
+  </main>;
+}
 function SelectFixture() {
   const params = new URLSearchParams(location.search);
   const [value, setValue] = React.useState<string | null>(params.get('defaultValue'));
@@ -112,4 +136,4 @@ function SelectFixture() {
     <button type="button" onClick={() => setOutsideClicks(n => n + 1)} style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
   </main>;
 }
-createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : <Fixture />);
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : <Fixture />);
