@@ -28,7 +28,8 @@
     "test:tooltip": "node harness/tooltip.mjs",
     "test:accordion": "node harness/accordion.mjs",
     "test:toggle-group": "node harness/toggle-group.mjs",
-    "test:label-combobox": "node harness/label-combobox.mjs"
+    "test:label-combobox": "node harness/label-combobox.mjs",
+    "test:menu-form": "node harness/menu-form.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",
