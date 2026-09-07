@@ -7,6 +7,7 @@ import { Select } from '@base-ui/react/select';
 import { Dialog } from '@base-ui/react/dialog';
 import { NumberField } from '@base-ui/react/number-field';
 import { Tabs } from '@base-ui/react/tabs';
+import { Tooltip } from '@base-ui/react/tooltip';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -158,4 +159,8 @@ function TabsFixture() {
     <Tabs.Panel value="overview">Overview panel</Tabs.Panel><Tabs.Panel value="disabled">Disabled panel</Tabs.Panel><Tabs.Panel value="reviews">Reviews panel</Tabs.Panel>
   </Tabs.Root><button>Outside</button></main>;
 }
-createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : fixture === 'tabs' ? <TabsFixture /> : <Fixture />);
+function TooltipFixture() { return <main data-fixture-ready="true"><Tooltip.Root disableHoverablePopup><Tooltip.Trigger delay={0} closeDelay={0} render={<button />}>Help</Tooltip.Trigger><Tooltip.Portal><Tooltip.Positioner sideOffset={8}><Tooltip.Popup data-testid="tooltip-popup">Helpful information</Tooltip.Popup></Tooltip.Positioner></Tooltip.Portal></Tooltip.Root><button style={{position:'fixed',right:20,top:200}}>Outside</button></main>; }
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : fixture === 'select' ? <SelectFixture /> : fixture === 'dialog' ? <DialogFixture /> : fixture === 'number-field' ? <NumberFixture /> : fixture === 'tabs' ? <TabsFixture /> : fixture === 'tooltip' ? <TooltipFixture /> : <Fixture />);
+
+
+
