@@ -3,7 +3,8 @@
 Read PORTING.md and ARCHITECTURE.md before implementation. The ten-minute
 prototype is historical scaffolding, not evidence of an upstream port.
 
-Deadline: 2026-09-08 08:30 UTC (14:00 Asia/Calcutta). Stop implementation at
+Deadline: 2026-09-07 20:30 UTC (02:00 September 8 Asia/Calcutta), corrected by user.
+This overrides the earlier 2 p.m. deadline in the original goal description. Stop implementation at
 deadline and report reproducible evidence. Coordinator controls integration.
 
 ## Rules
