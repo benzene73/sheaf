@@ -13,7 +13,10 @@ const scenarios = [
   { name: 'multi-letter typeahead chooses matching label', keys: ['ArrowDown', 'c', 'h'], active: ['Alpha', 'Charlie', 'Charlie'] },
   { name: 'disabled Enter ignores action and stays open', keys: ['ArrowDown', 'ArrowDown', 'Enter'], active: ['Alpha', 'Beta', 'Beta'] },
   { name: 'enabled Enter invokes action closes and returns focus', keys: ['ArrowDown', 'Enter'], active: ['Alpha', null], action: 'Alpha', closed: true },
+  { name: 'Space invokes action closes and returns focus', keys: ['ArrowDown', 'Space'], active: ['Alpha', null], action: 'Alpha', closed: true },
   { name: 'Escape closes and returns trigger focus', keys: ['ArrowDown', 'Escape'], active: ['Alpha', null], closed: true },
+  { name: 'Tab closes and moves focus outside', keys: ['ArrowDown', 'Tab'], active: ['Alpha', null], closed: true, outsideFocus: true },
+  { name: 'modal backdrop pointer dismisses and restores trigger focus', keys: ['ArrowDown', 'OutsideClick'], active: ['Alpha', null], closed: true },
   { name: 'closeOnClick false keeps enabled action open', query: '&keepOpen=true', keys: ['ArrowDown', 'Enter'], active: ['Alpha', 'Alpha'], action: 'Alpha' },
 ];
 function snapshot() {
@@ -21,6 +24,7 @@ function snapshot() {
   const focused = document.activeElement;
   return { active: focused?.getAttribute('role') === 'menuitem' ? focused.textContent.trim() : null,
     expanded: trigger.getAttribute('aria-expanded') === 'true', triggerFocused: trigger === focused,
+    outsideFocused: focused?.tagName === 'BUTTON' && focused.textContent.trim() === 'Outside',
     action: document.querySelector('[data-testid="menu-action"]').textContent.trim() };
 }
 const results = [];
@@ -37,9 +41,15 @@ for (const browserName of (process.env.BROWSERS || 'chromium').split(',')) {
           await page.locator('[data-fixture-ready="true"]').waitFor({ state: 'attached' });
           await page.getByRole('button', { name: 'Open menu', exact: true }).focus();
           for (let i = 0; i < scenario.keys.length; i++) {
-            await page.keyboard.press(scenario.keys[i]);
+            if (scenario.keys[i] === 'OutsideClick') {
+              const box = await page.locator('button').filter({ hasText: /^Outside$/ }).boundingBox();
+              // A modal backdrop intentionally intercepts this point. Exercise the
+              // real pointer rather than forcing the underlying button's handler.
+              await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+            }
+            else await page.keyboard.press(scenario.keys[i]);
             const last = i === scenario.keys.length - 1;
-            const expected = { active: scenario.active[i], expanded: !(last && scenario.closed), triggerFocused: Boolean(last && scenario.closed), action: last && scenario.action ? scenario.action : '' };
+            const expected = { active: scenario.active[i], expanded: !(last && scenario.closed), triggerFocused: Boolean(last && scenario.closed && !scenario.outsideFocus), outsideFocused: Boolean(last && scenario.outsideFocus), action: last && scenario.action ? scenario.action : '' };
             const deadline = Date.now() + 2500; let actual;
             do {
               actual = await page.evaluate(snapshot);

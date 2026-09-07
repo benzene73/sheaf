@@ -71,7 +71,7 @@ function MenuFixture() {
       </Menu.Popup></Menu.Positioner></Menu.Portal>
     </Menu.Root>
     <output data-testid="menu-action">{action}</output>
-    <button type="button">Outside</button>
+    <button type="button" style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
   </main>;
 }
 const fixture = new URLSearchParams(location.search).get('fixture');
