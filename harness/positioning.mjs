@@ -41,7 +41,7 @@ for (const browserName of (process.env.BROWSERS || 'chromium').split(',')) {
         try {
           await page.goto(target.url + '&size=' + scenario.size);
           await page.locator('[data-fixture-ready="true"]').waitFor({ state: 'attached' });
-          await page.getByRole('button', { name: 'Open popup' }).click();
+          await page.locator('[data-testid="anchor"]').click();
           await page.locator('[data-testid="popup"]').waitFor({ state: 'visible' });
           if (scenario.resize) await page.setViewportSize(scenario.resize);
           const deadline = Date.now() + 3000;

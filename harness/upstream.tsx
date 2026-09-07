@@ -2,6 +2,7 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Combobox } from '@base-ui/react/combobox';
 import { Popover } from '@base-ui/react/popover';
+import { Menu } from '@base-ui/react/menu';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
@@ -59,4 +60,19 @@ function PositioningFixture() {
     </Popover.Root>
   </main>;
 }
-createRoot(document.getElementById('root')!).render(new URLSearchParams(location.search).get('fixture') === 'popover' ? <PositioningFixture /> : <Fixture />);
+function MenuFixture() {
+  const [action, setAction] = React.useState('');
+  const keepOpen = new URLSearchParams(location.search).get('keepOpen') === 'true';
+  return <main data-fixture-ready="true">
+    <Menu.Root>
+      <Menu.Trigger>Open menu</Menu.Trigger>
+      <Menu.Portal><Menu.Positioner><Menu.Popup>
+        {['Alpha', 'Beta', 'Bravo', 'Charlie'].map(label => <Menu.Item key={label} disabled={label === 'Beta'} closeOnClick={!keepOpen} onClick={() => setAction(label)}>{label}</Menu.Item>)}
+      </Menu.Popup></Menu.Positioner></Menu.Portal>
+    </Menu.Root>
+    <output data-testid="menu-action">{action}</output>
+    <button type="button">Outside</button>
+  </main>;
+}
+const fixture = new URLSearchParams(location.search).get('fixture');
+createRoot(document.getElementById('root')!).render(fixture === 'popover' ? <PositioningFixture /> : fixture === 'menu' ? <MenuFixture /> : <Fixture />);

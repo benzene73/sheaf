@@ -8,7 +8,8 @@
     "serve:upstream": "node harness/serve-upstream.mjs",
     "test:paired": "node harness/paired.mjs",
     "test:lifecycle": "node harness/lifecycle.mjs",
-    "test:positioning": "node harness/positioning.mjs"
+    "test:positioning": "node harness/positioning.mjs",
+    "test:menu": "node harness/menu.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",
