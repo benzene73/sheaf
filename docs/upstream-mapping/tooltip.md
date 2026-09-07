@@ -1,0 +1,9 @@
+# Tooltip focus and hover-rest slice
+
+Pin `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`; MIT attribution retained. `TooltipTrigger.tsx:143–147` chooses explicit delay, provider delay, then OPEN_DELAY600; an active group means immediate adjacency. Provider.tsx defaults timeout400; this constant is exposed but the provider's shared scheduling itself is not ported. Close delay defaults0; closeOnClick defaults true.
+
+`tooltip.ts` extracts the single-reference focus branch of useFocus.ts. Focus-visible keyboard focus opens immediately with trigger-focus reason. Accepted Escape/trigger-press changes block reopening the same reference until blur/mouseleave; blur defers through a zero-timeout and preserves focus inside the reference/popup/portal guard or another enabled trigger. The host supplies those DOM/tree facts after timeout and guards disabled state. Mac Safari's special keyboard-modality heuristic is omitted in this bounded Chromium-targeted fixture.
+
+Hover uses **rest delay**, not mouseenter delay. The single-trigger mousemove branch of useHoverReferenceInteraction.ts:431–511 is retained: mouse/pen/unknown mouse-like pointer, reset timer for meaningful movement, ignore tiny movement while pending, recheck click-like opening and block state before delayed open. Host handles immediate enter for rest0 and mouseleave cancellation/close delay. Escape can reuse the already translated useDismiss key policy; aria-describedby/tooltip role, positioning and lifecycle remain host responsibilities.
+
+Safe-polygon hoverable-popup transit, shared provider timers, nested/delegated triggers, moving between triggers, close-transition reopening, touch and cursor tracking remain unported. A fixture using disableHoverablePopup=true should say so explicitly rather than imply default safe-polygon parity. Three focused unit tests cover configured delays, focus/Escape/blur and delayed-hover race handling.
