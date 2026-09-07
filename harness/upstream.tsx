@@ -4,11 +4,20 @@ import { Combobox } from '@base-ui/react/combobox';
 
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
-  const [accepted, setAccepted] = React.useState<string | null>(null);
-  const loopFocus = new URLSearchParams(location.search).get('loop') !== 'false';
+  const params = new URLSearchParams(location.search);
+  const [accepted, setAccepted] = React.useState<string | null>(params.get('defaultValue'));
+  const [submits, setSubmits] = React.useState(0);
+  const loopFocus = params.get('loop') !== 'false';
   return <main data-fixture-ready="true">
     <h1>Pinned Base UI React reference</h1>
-    <Combobox.Root items={items} value={accepted} onValueChange={setAccepted} loopFocus={loopFocus}>
+    <form onSubmit={event => { event.preventDefault(); setSubmits(count => count + 1); }}>
+    <Combobox.Root items={items} value={accepted} loopFocus={loopFocus}
+      readOnly={params.get('readOnly') === 'true'}
+      onValueChange={(value, details) => {
+        if (params.get('cancelValue') === 'true') details.cancel();
+        else setAccepted(value);
+      }}
+      onOpenChange={(open, details) => { if (!open && params.get('cancelClose') === 'true') details.cancel(); }}>
       <Combobox.Input aria-label="Fruit" />
       <Combobox.Portal>
         <Combobox.Positioner>
@@ -20,8 +29,11 @@ function Fixture() {
         </Combobox.Positioner>
       </Combobox.Portal>
     </Combobox.Root>
+    <button type="submit">Submit</button>
+    </form>
     <output data-testid="accepted-value">{accepted || ''}</output>
-    <button>Outside</button>
+    <output data-testid="submit-count">{submits}</output>
+    <button type="button">Outside</button>
   </main>;
 }
 createRoot(document.getElementById('root')!).render(<Fixture />);

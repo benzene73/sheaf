@@ -6,7 +6,8 @@
     "build:liveview": "esbuild client.js --bundle --outfile=priv/static/app.js",
     "build:upstream": "node harness/build-upstream.mjs",
     "serve:upstream": "node harness/serve-upstream.mjs",
-    "test:paired": "node harness/paired.mjs"
+    "test:paired": "node harness/paired.mjs",
+    "test:lifecycle": "node harness/lifecycle.mjs"
   },
   "dependencies": {
     "@babel/runtime": "7.29.7",
