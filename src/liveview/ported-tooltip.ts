@@ -12,7 +12,7 @@ function timer() {
 }
 interface State {
   trigger: HTMLButtonElement; popup: HTMLElement; open: boolean; dead: boolean; pointerType?: string;
-  clickLike: boolean; composing: boolean; delay: number;
+  clickLike: boolean; composing: boolean; delay: number; describedByOwned: boolean;
   focusController: ReturnType<typeof createTooltipFocus>;
   hoverController: ReturnType<typeof createTooltipHoverRest>;
   positioning?: ReturnType<typeof startAnchorPositioning>;
@@ -22,11 +22,12 @@ interface State {
   onClick: (event: MouseEvent) => void; onKey: (event: KeyboardEvent) => void;
   onCompositionStart: () => void; onCompositionEnd: () => void;
 }
-interface Methods { change(open: boolean, details: ChangeEventDetails): void; }
+interface Methods { change(open: boolean, details: ChangeEventDetails): void; syncDescription(): void; }
 export const PortedTooltip: HookDefinition<State, Methods> = {
   mounted() {
     this.trigger = requirePart(this.el, '[data-tooltip-trigger]', HTMLButtonElement);
     this.popup = requirePart(this.el, '[data-tooltip-popup]', HTMLElement);
+    this.describedByOwned = false;
     this.open = false; this.dead = false; this.clickLike = false; this.composing = false;
     this.delay = getTooltipOpenDelay(this.el.dataset.delay === undefined ? undefined : Number(this.el.dataset.delay));
     this.focusController = createTooltipFocus({ timer: timer(), requestOpen: (open, details) => this.change(open, details) });
@@ -75,13 +76,24 @@ export const PortedTooltip: HookDefinition<State, Methods> = {
     if (open) {
       this.clickLike = details.event.type === 'click' || details.event.type === 'mousedown';
       this.popup.showPopover();
-      this.trigger.setAttribute('aria-describedby', this.popup.id);
+      this.syncDescription();
       this.positioning = startAnchorPositioning(this.trigger, this.popup, { side: 'top', sideOffset: 8, collisionPadding: 8 });
     } else {
       this.hoverController.clear(); this.positioning?.destroy(); this.positioning = undefined;
-      this.popup.hidePopover(); this.trigger.removeAttribute('aria-describedby'); this.clickLike = false;
+      this.popup.hidePopover(); this.syncDescription(); this.clickLike = false;
     }
   },
+  syncDescription() {
+    const tokens = new Set((this.trigger.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    if (this.open && !tokens.has(this.popup.id)) {
+      tokens.add(this.popup.id); this.describedByOwned = true;
+    } else if (!this.open && this.describedByOwned) {
+      tokens.delete(this.popup.id); this.describedByOwned = false;
+    }
+    if (tokens.size) this.trigger.setAttribute('aria-describedby', [...tokens].join(' '));
+    else this.trigger.removeAttribute('aria-describedby');
+  },
+  updated() { this.syncDescription(); this.positioning?.update(); },
   destroyed() {
     this.change(false, createChangeEventDetails('none'));
     this.dead = true; this.focusController.destroy(); this.hoverController.clear();

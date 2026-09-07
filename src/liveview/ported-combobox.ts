@@ -4,6 +4,7 @@ import {createComboboxChangeController} from '../behavior/combobox-change';
 import {type ChangeEventDetails, createChangeEventDetails, runSingleInputKey, requestSingleSelectedValue,
   runSingleSelection, completeSingleClose} from '../behavior/combobox-input';
 
+import {startAnchorPositioning} from '../behavior/anchor-positioning';
 import {type HookDefinition, requirePart} from './hook-types';
 
 interface SelectionReply {
@@ -28,6 +29,8 @@ interface ComboboxState {
   list: HTMLElement;
   open: boolean;
   popupMounted: boolean;
+  positioned: boolean;
+  positioning?: ReturnType<typeof startAnchorPositioning>;
   active: string | null;
   intent: number;
   requestId: number;
@@ -50,6 +53,7 @@ interface ComboboxState {
 }
 interface ComboboxMethods {
   allRows(): HTMLElement[];
+  valueLabel(value: string | null): string;
   rows(): HTMLElement[];
   close(details: ChangeEventDetails): void;
   select(row: HTMLElement | undefined, event: Event): void;
@@ -77,6 +81,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.pushEvent('combobox_mount', {component_id: this.el.id, instance: this.instance});
     this.input = requirePart(this.el, '[data-part=input]', HTMLInputElement);
     this.list = requirePart(this.el, '[data-part=list]', HTMLElement);
+    this.positioned = this.list.getAttribute('popover') === 'manual';
     this.open = false;
     this.popupMounted = false;
     this.active = null;
@@ -87,7 +92,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.handleEvent('selection_result', (reply: SelectionReply) => this.finishProposal(reply));
     this.queryChanged = false;
     this.accepted = this.el.dataset.accepted || null;
-    this.queryValue = this.accepted || '';
+    this.queryValue = this.valueLabel(this.accepted);
     this.composingValue = null;
     this.input.value = this.queryValue;
     this.change = createComboboxChangeController({
@@ -191,6 +196,14 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.el.dataset.fixtureReady = 'true';
   },
   allRows() { return Array.from(this.list.querySelectorAll<HTMLElement>('[role=option]')); },
+  valueLabel(value) {
+    if (value === null) return '';
+    const row = this.allRows().find(option => option.dataset.value === value);
+    if (row) return row.dataset.label ?? row.textContent?.trim() ?? value;
+    // A host can retain the selected label when its option is not currently rendered.
+    if (value === this.el.dataset.accepted) return this.el.dataset.acceptedLabel ?? value;
+    return value; // Preserve the original string-item contract for existing consumers.
+  },
   setInput(value) { this.queryValue = value; this.input.value = value; },
   requestInput(value, details) {
     if (this.el.dataset.cancelInput === 'true') details.cancel();
@@ -205,7 +218,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.open = false;
     // This fixture has no exit animation. Completion is immediate but remains a
     // separate transition, so adding presence must not move restoration earlier.
-    completeSingleClose({selectedLabel: this.accepted || ''}, {
+    completeSingleClose({selectedLabel: this.valueLabel(this.accepted)}, {
       getInputValue: () => this.input.value,
       setMounted: (value: boolean) => { this.popupMounted = value; },
       setQueryChanged: (value: boolean) => { this.queryChanged = value; },
@@ -245,7 +258,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     const requestSelectedValue = (next: string | null, change: ChangeEventDetails) => requestSingleSelectedValue(next, change, {
       onValueChange: (_value: string | null, mutable: ChangeEventDetails) => { if (!reply.accepted) mutable.cancel(); },
       assignValue: () => { this.accepted = reply.value || null; },
-      stringifyValueLabel: (item: string | null) => item || '',
+      stringifyValueLabel: (item: string | null) => this.valueLabel(item),
       requestInput: (text, change) => this.requestInput(text, change),
     });
     if (closeAfter) runSingleSelection(value, details, {
@@ -257,14 +270,29 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.sync();
   },
   sync() {
+    if (this.dead) return;
     this.list.hidden = !this.open;
     const filter = getFilter();
     const {filterQuery} = resolveComboboxFilterQuery({
       open: this.open, closeQuery: null, inputValue: this.queryValue, single: true,
-      selectedLabel: this.accepted || '', queryChangedAfterOpen: this.queryChanged,
+      selectedLabel: this.valueLabel(this.accepted), queryChangedAfterOpen: this.queryChanged,
     }, filter);
     for (const row of this.allRows()) {
-      row.hidden = !filter.contains(row.textContent || '', filterQuery);
+      row.hidden = !filter.contains(row.dataset.label ?? row.textContent ?? '', filterQuery);
+    }
+    if (this.positioned) {
+      if (this.open) {
+        if (!this.list.matches(':popover-open')) this.list.showPopover();
+        if (!this.positioning) {
+          this.positioning = startAnchorPositioning(this.input, this.list, {
+            positionMethod: 'fixed', side: 'bottom', align: 'start', sideOffset: 4,
+            collisionPadding: 8, isMounted: () => !this.dead && this.open && this.list.matches(':popover-open'),
+          });
+        } else this.positioning.update();
+      } else {
+        this.positioning?.destroy(); this.positioning = undefined;
+        if (this.list.matches(':popover-open')) this.list.hidePopover();
+      }
     }
     this.input.setAttribute('aria-expanded', String(this.open));
     const row = this.open && this.rows().find((item: HTMLElement) => item.id === this.active);
@@ -274,13 +302,18 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
   updated() {
     // Canonical reconciliation is independent of a pending interaction. A stale
     // continuation must not freeze the browser's accepted-value snapshot.
+    const previousAccepted = this.accepted;
     this.accepted = this.el.dataset.accepted || null;
+    if (previousAccepted !== this.accepted && !this.open && this.composingValue === null &&
+        !this.queryChanged && !this.pending) this.setInput(this.valueLabel(this.accepted));
     if (this.composingValue !== null) this.input.value = this.composingValue;
     this.sync();
   },
   destroyed() {
     this.dead = true;
     ++this.intent;
+    this.positioning?.destroy(); this.positioning = undefined;
+    if (this.positioned && this.list.matches(':popover-open')) this.list.hidePopover();
     this.input.removeEventListener('keydown', this.onKey);
     this.input.removeEventListener('input', this.onInput);
     this.input.removeEventListener('compositionstart', this.onCompositionStart);

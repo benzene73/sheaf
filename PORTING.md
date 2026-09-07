@@ -7,6 +7,12 @@ Read ARCHITECTURE.md for ownership and gate requirements. The historical
 source-informed trial is preserved in docs/history/ten-minute-trial.md and at `/`.
 It is not a Base UI port. The source-translated fixture is at `/paired`.
 
+Current component index: `/lab`. The first translation gate passed before
+expansion; subsequent source slices cover menu/select/popover policies, scroll
+locking and tabbable utilities, number fields, tabs, tooltips, accordion and
+toggle groups. Native dialog/popover and the LiveView acceptance bridge are
+explicit host adaptations. Each family has a mapping and bounded run evidence.
+
 First translation: floating-ui-react list-navigation vertical/virtual branch,
 visibility and disabled-item scan, and opening index selection. Exact functions,
 upstream tests, omissions and divergences are in docs/upstream-mapping and
@@ -18,3 +24,8 @@ LiveView. A deliberately changed navigation rule must fail those scenarios.
 Independent source and test review is required before expanding families.
 Record browser runs, failures and unverified behavior explicitly. Passing the
 bounded gate is not full combobox parity or production-readiness.
+
+The user narrowed ongoing testing to Chromium and asked us to move on after
+ordinary usability is good. Preserve past reports, do not rerun an exhaustive
+cross-browser matrix, and do not add custom code where a native control already
+provides the needed behavior.

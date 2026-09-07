@@ -1,17 +1,15 @@
 defmodule Lab.ToggleGroupLive do
   use Phoenix.LiveView
+  alias LiveViewPrimitives.Controls
 
   def mount(params, _, socket),
     do: {:ok, assign(socket, multiple: params["multiple"] == "true", values: ["grid"])}
 
   def render(assigns) do
     ~H"""
-    <main id="toggle-group-fixture" phx-hook="PortedToggleGroup" data-value={Jason.encode!(@values)} data-multiple={to_string(@multiple)}>
-      <div role="group" aria-label="View">
-        <button :for={{value, label} <- [{"grid", "Grid"}, {"list", "List"}, {"disabled", "Disabled"}]}
-          id={"toggle-#{value}"} type="button" data-value={value} disabled={value == "disabled"}
-          aria-pressed={to_string(value in @values)} tabindex={if(value == "grid", do: "0", else: "-1")}>{label}</button>
-      </div>
+    <main class="lab-demo">
+      <Controls.toggle_group id="toggle-group-fixture" label="View" multiple={@multiple} default_value={["grid"]}
+        options={[%{value: "grid", label: "Grid"}, %{value: "list", label: "List"}, %{value: "disabled", label: "Disabled", disabled: true}]} />
       <output data-testid="toggle-value">{Enum.join(@values, ",")}</output>
       <button type="button">Outside</button>
     </main>

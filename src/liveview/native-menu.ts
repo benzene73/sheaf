@@ -28,7 +28,7 @@ interface Methods {
 // Source-derived navigation/typeahead/positioning with explicit native-popover
 // integration. Dismissal and activation below are adapter behavior, not a claim
 // to have translated the complete Menu/FloatingFocusManager interaction stack.
-export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {value: string}}> = {
+export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {component_id: string; value: string}}> = {
   mounted() {
     this.anchor = requirePart(this.el, '[data-part=anchor]', HTMLButtonElement);
     this.popup = requirePart(this.el, '[data-part=menu]', HTMLElement);
@@ -109,7 +109,7 @@ export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {value
     if (isListIndexDisabled(rows, rows.indexOf(row))) return;
     const value = row.dataset.value;
     if (value === undefined) throw new Error('Menu item requires data-value');
-    this.pushEvent('menu_action', {value});
+    this.pushEvent('menu_action', {component_id: this.el.id, value});
     if (this.el.dataset.keepOpen !== 'true') this.close();
   },
   close(restoreFocus = true) { this.controller.close(restoreFocus); },

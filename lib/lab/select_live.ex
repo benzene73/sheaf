@@ -21,7 +21,7 @@ defmodule Lab.SelectLive do
       <form id="select-form" phx-submit="submit">
       <input type="hidden" name="fruit" value={@value} />
       <button type="button" role="combobox" data-part="anchor" aria-label="Choose fruit" aria-haspopup="listbox"
-        aria-expanded="false" popovertarget="select-layer" aria-controls="select-popup">Choose</button>
+        aria-expanded="false" popovertarget="select-layer" aria-controls="select-popup"><span data-part="value" data-placeholder="Choose">Choose</span></button>
       <div id="select-layer" data-part="layer" popover="auto"
         style="position:fixed;inset:0;margin:0;padding:0;border:0;width:100vw;height:100vh;max-width:none;max-height:none;background:transparent;pointer-events:none;overflow:visible">
         <div data-part="backdrop" hidden={not @modal} style="position:fixed;inset:0;pointer-events:auto"></div>

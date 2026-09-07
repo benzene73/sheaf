@@ -8,6 +8,7 @@ import {requirePart, type HookDefinition} from './hook-types';
 
 interface State {
   anchor: HTMLButtonElement; popup: HTMLElement; controller: NativePopupController;
+  valueDisplay: HTMLElement;
   accepted: string | null; typing: boolean;
   typeahead: ReturnType<typeof createSelectTypeahead<string>>;
   onTriggerKey: (event: KeyboardEvent) => void;
@@ -28,9 +29,10 @@ interface Methods {
  * Cancellation here is an explicit synchronous policy supplied by the server;
  * asynchronous validation/rollback is not claimed by this bounded fixture. */
 export const NativeSelect: HookDefinition<State, Methods, {},
-  {select_value: {value: string; canceled: boolean}}> = {
+  {select_value: {component_id: string; value: string; canceled: boolean}}> = {
   mounted() {
     this.anchor = requirePart(this.el, '[data-part=anchor]', HTMLButtonElement);
+    this.valueDisplay = requirePart(this.anchor, '[data-part=value]', HTMLElement);
     this.popup = requirePart(this.el, '[data-part=select]', HTMLElement);
     this.accepted = this.el.dataset.accepted || null;
     this.typing = false;
@@ -103,7 +105,7 @@ export const NativeSelect: HookDefinition<State, Methods, {},
       onValueChange: (_, change) => { if (this.el.dataset.cancelValue === 'true') change.cancel(); },
       assignValue: next => { this.accepted = next; this.sync(); },
     });
-    this.pushEvent('select_value', {value, canceled: details.isCanceled});
+    this.pushEvent('select_value', {component_id: this.el.id, value, canceled: details.isCanceled});
   },
   activate(row, event) {
     const value = row.dataset.value;
@@ -116,7 +118,8 @@ export const NativeSelect: HookDefinition<State, Methods, {},
   },
   sync() {
     this.controller.refresh();
-    this.anchor.textContent = this.accepted || 'Choose';
+    const selected = this.rows().find(row => row.dataset.value === this.accepted);
+    this.valueDisplay.textContent = selected?.textContent?.trim() || this.accepted || this.valueDisplay.dataset.placeholder || '';
     for (const row of this.rows()) row.setAttribute('aria-selected', String(row.dataset.value === this.accepted));
   },
   updated() { this.accepted = this.el.dataset.accepted || null; this.sync(); this.typeahead.sync(); },

@@ -1,9 +1,6 @@
 import {Socket} from './deps/phoenix/priv/static/phoenix.mjs';
 import {LiveSocket} from './deps/phoenix_live_view/priv/static/phoenix_live_view.esm.js';
-import {PortedCombobox} from './src/liveview/ported-combobox';
-import {NativePositionedPopover} from './src/liveview/native-positioned-popover';
-import {NativeMenu} from './src/liveview/native-menu';
-import {NativeSelect} from './src/liveview/native-select';
+import {hooks as primitiveHooks} from './src/liveview';
 const Combo = {
   mounted() {
     this.input = this.el.querySelector('#query');
@@ -52,5 +49,5 @@ const Combo = {
   }
 };
 const NativeDialog={mounted(){this.el.showModal()},destroyed(){if(this.el.open)this.el.close()}};
-const liveSocket=new LiveSocket('/live',Socket,{params:{_csrf_token:document.querySelector('meta[name=csrf-token]').content},hooks:{Combo,NativeDialog,PortedCombobox,NativePositionedPopover,NativeMenu,NativeSelect}});
+const liveSocket=new LiveSocket('/live',Socket,{params:{_csrf_token:document.querySelector('meta[name=csrf-token]').content},hooks:{...primitiveHooks,Combo,NativeDialog}});
 liveSocket.connect(); window.liveSocket=liveSocket;

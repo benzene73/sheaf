@@ -12,9 +12,19 @@ defmodule Lab.Router do
   scope "/" do
     pipe_through(:browser)
     live("/", Lab.Live)
+    live("/lab", Lab.HomeLive)
+    live("/components", Lab.ComponentsLive)
+    live("/nested", Lab.NestedLive)
     live("/paired", Lab.PairedLive)
+    live("/label-combobox", Lab.LabelComboboxLive)
     live("/positioning", Lab.PositioningLive)
     live("/menu", Lab.MenuLive)
     live("/select", Lab.SelectLive)
+    live("/dialog", Lab.DialogLive)
+    live("/number-field", Lab.NumberFieldLive)
+    live("/tabs", Lab.TabsLive)
+    live("/accordion", Lab.AccordionLive)
+    live("/tooltip", Lab.TooltipLive)
+    live("/toggle-group", Lab.ToggleGroupLive)
   end
 end

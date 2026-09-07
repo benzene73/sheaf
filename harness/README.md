@@ -7,12 +7,11 @@ under `artifacts/upstream/`.
 
 ```powershell
 npm ci
-npx playwright install chromium firefox webkit
+npx playwright install chromium
 npm run build:upstream
 npm run serve:upstream
 # In another shell, with the standalone LiveView fixture running on 4197:
-$env:BROWSERS='chromium,firefox,webkit'
-npm run test:paired
+npm run test:browser
 ```
 
 Set `BASE_UI_SOURCE` before building if the pinned clone is not at
@@ -20,7 +19,7 @@ Set `BASE_UI_SOURCE` before building if the pinned clone is not at
 `BROWSERS`, and `REPORT_PATH` configure independent runs. `UPSTREAM_ONLY=1` is
 diagnostic only and is not paired parity evidence.
 
-Nine shared scenarios exercise the bounded vertical navigation contract. Both
+The first nine shared scenarios exercise the bounded vertical navigation contract. Both
 targets receive identical real keyboard actions and identical semantic assertions
 for input focus, highlighted item, expanded state, and accepted value. No arbitrary
 sleeps, framework-specific dispatch, or alternate LiveView success path is used.
@@ -37,7 +36,14 @@ corrected to this actual upstream contract; a dedicated disabled Enter test was
 added. The generic list algorithm's default skip behavior remains a separate
 unit-level capability, not the combobox's consumer configuration.
 
-The suite does not certify the whole combobox: filtering, async results, IME,
-pointer interactions, patch recovery, mobile viewport behavior, and screen readers
-remain separate work. The first gate also requires an independently reviewed
-mutation run showing an intentionally broken translation fails these same tests.
+That first suite does not certify the whole combobox. Separate suites now exercise
+filtering, synthetic composition, pointer/form interactions, patch recovery and
+the server-acceptance bridge. Other families have their own bounded suites.
+Read the individual run ledgers for precise coverage. Real screen readers,
+physical IME/mobile input and full upstream compatibility remain outside these
+checks. Negative controls prove selected intentionally broken translations fail.
+
+Current work targets Chromium only. Historical Firefox/WebKit reports are retained
+but do not imply that later components were tested there. `npm run test:browser`
+forces Chromium and records each selected suite under `artifacts/current`.
+Pass names to run only affected families, for example `-- tabs tooltip`.

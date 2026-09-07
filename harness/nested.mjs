@@ -35,5 +35,5 @@ try {
 } catch (error) { result = {pass: false, browser: 'chromium', error: error.message, errors}; process.exitCode = 1; }
 finally { await browser.close(); }
 mkdirSync('artifacts', {recursive: true});
-writeFileSync('artifacts/nested-smoke.json', JSON.stringify(result, null, 2));
+writeFileSync(process.env.REPORT_PATH || 'artifacts/nested-smoke.json', JSON.stringify(result, null, 2));
 console.log(result);

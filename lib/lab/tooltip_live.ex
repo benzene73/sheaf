@@ -1,15 +1,15 @@
 defmodule Lab.TooltipLive do
   use Phoenix.LiveView
+  alias LiveViewPrimitives.Controls
 
   def render(assigns) do
     ~H"""
-    <main id="tooltip-fixture" phx-hook="PortedTooltip" data-delay="0">
+    <main class="lab-demo">
       <p>Tooltip: immediate delay, non-hoverable popup.</p>
-      <button id="tooltip-trigger" data-tooltip-trigger type="button" style="margin:80px">Help</button>
-      <div id="tooltip-popup" data-tooltip-popup data-testid="tooltip-popup" role="tooltip" popover="manual"
-        style="margin:0;inset:auto;padding:8px 12px;border:1px solid #888;border-radius:6px;background:#222;color:white;max-width:var(--available-width)">
+      <Controls.tooltip id="tooltip-fixture" delay={0} popup_testid="tooltip-popup">
+        <:trigger>Help</:trigger>
         Helpful information
-      </div>
+      </Controls.tooltip>
       <button type="button" style="position:fixed;right:24px;bottom:24px">Outside</button>
     </main>
     """

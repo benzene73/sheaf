@@ -6,7 +6,7 @@ defmodule Lab.NestedLive do
 
   def render(assigns) do
     ~H"""
-    <main>
+    <main class="lab-demo">
       <Controls.dialog id="nested-profile" label="Edit profile">
         <:trigger>Edit profile</:trigger>
         <.form for={%{}} id="nested-profile-form" phx-submit="save">

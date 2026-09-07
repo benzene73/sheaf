@@ -1,13 +1,18 @@
-# Initial architecture — reviewed changes permitted
+# Architecture and ownership
 
-Browser controller owns transient focus, open state, highlighted item, pointer
-state and immediate invalidation. LiveView owns accepted values, validation and
-server-rendered option contents. Query generations and acknowledgements form the
-boundary protocol. Rejection must not overwrite a newer accepted value.
+Browser controllers own transient focus, open state, highlighted items and pointer
+state. Combobox selection uses the documented mount/intent/request protocol;
+LiveView owns its accepted value and option contents. Select provides immediate
+feedback then reconciles the host's accepted assign. The small Controls helpers
+(number field, tabs, accordion and toggle group) are explicitly browser-owned:
+their `default_value` is mount-time configuration, with server notifications.
+These are different public contracts, not an implicit universal controlled API.
 
-The first public contract must explicitly define controlled/uncontrolled use,
-selection proposal/acceptance and loading. Prototype's synchronous rejection is
-not the final contract. Document any change before multiple components consume it.
+The event/ownership contracts are documented in docs/components.md and
+docs/behavioral-contracts. No helper promises asynchronous approval unless its
+host protocol actually implements it. Stable root IDs isolate instances; stable
+required parts remain under LiveView ownership. Hooks restore transient attributes
+after patches and clean up listeners/timers/positioning on destruction.
 
 Use TypeScript for reusable client behavior, thin LiveView hook adapters and HEEx
 parts. Reuse Floating UI DOM algorithms for positioning. Native dialog/popover
@@ -24,6 +29,15 @@ Do not expand component inventory before this gate is independently reviewed.
 Keep mapping under docs/upstream-mapping, contracts under docs/behavioral-contracts,
 intentional differences under docs/known-divergences and run reports under docs/runs.
 Tests measure focus, active item, accepted value, open state and semantic events;
-do not compare React and LiveView DOM byte-for-byte. Browser matrix is Chromium,
-Firefox and WebKit; support claims require actual passing runs. Physical mobile
-and screen-reader checks remain distinct from browser accessibility snapshots.
+do not compare React and LiveView DOM byte-for-byte. Current verification target
+is Chromium, per the user's instruction. Earlier Firefox/WebKit results remain
+historical evidence, not a promise that newer components were tested there.
+Physical mobile and screen-reader checks remain distinct from browser snapshots.
+
+## Practical stopping rule
+
+Prove ordinary keyboard/pointer use, accessible relationships, dismissal and the
+relevant LiveView patch behavior. Fix concrete failures and move to the next useful
+component. Do not expand a passing family into an exhaustive edge-case matrix.
+Record omissions so consumers can distinguish a bounded usable slice from full
+Base UI compatibility. A final regression pass checks integrated changes once.

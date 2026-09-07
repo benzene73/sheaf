@@ -1,9 +1,9 @@
 import {spawnSync} from 'node:child_process';
 import {mkdirSync, writeFileSync} from 'node:fs';
 
-const suites = ['paired', 'lifecycle', 'filtering', 'composition', 'menu', 'menu-scroll',
+const suites = ['paired', 'label-combobox', 'lifecycle', 'filtering', 'composition', 'menu', 'menu-scroll',
   'select', 'select-extra', 'positioning', 'popover-behavior', 'dialog', 'number-field',
-  'liveview-bridge', 'liveview-lifecycle', 'bridge-isolation'];
+  'tabs', 'tooltip', 'accordion', 'toggle-group', 'components', 'nested', 'liveview-bridge', 'liveview-lifecycle', 'bridge-isolation'];
 const selected = process.argv.slice(2);
 for (const name of selected) if (!suites.includes(name)) throw new Error(`Unknown suite: ${name}`);
 mkdirSync('artifacts/current', {recursive: true});

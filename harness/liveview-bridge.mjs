@@ -47,5 +47,5 @@ for(const name of (process.env.BROWSERS||'chromium').split(',')) {
  });
  await browser.close();
 }
-mkdirSync('artifacts',{recursive:true});writeFileSync('artifacts/liveview-bridge-results.json',JSON.stringify({at:new Date().toISOString(),results},null,2));
+mkdirSync('artifacts',{recursive:true});writeFileSync(process.env.REPORT_PATH || 'artifacts/liveview-bridge-results.json',JSON.stringify({at:new Date().toISOString(),results},null,2));
 if(results.some(x=>!x.pass))process.exitCode=1;
