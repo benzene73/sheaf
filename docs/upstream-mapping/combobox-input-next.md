@@ -115,9 +115,12 @@ ack marks acceptance or mere receipt; receipt must never imply acceptance.
 - Root test `should not submit the form with Enter on a highlighted item when
   readOnly`, :5068.
 - Root tests around :6884 cover canceled item-press close preserving input filter.
+- Root test :1131 `should reset input value to selected value when popup closes
+  without selection`: outside input default apple; open/select apple, reopen,
+  type xyz (input applexyz), outside-click closes, input restores apple and
+  onInputValueChange reason is none. This is the matching close-completion test.
 - Root test :314 covers Escape with input INSIDE popup; use it only for that
   future composition, not as evidence for outside-input label restoration.
 
-Before implementation, locate outside-input Escape/close-completion test and
-port that exact composition into shared browser scenarios. Add independent
+Port the :1131 composition into shared browser scenarios. Add independent
 LiveView delayed-ack tests rather than weakening shared upstream scenarios.
