@@ -62,16 +62,19 @@ function PositioningFixture() {
 }
 function MenuFixture() {
   const [action, setAction] = React.useState('');
-  const keepOpen = new URLSearchParams(location.search).get('keepOpen') === 'true';
+  const [outsideClicks, setOutsideClicks] = React.useState(0);
+  const params = new URLSearchParams(location.search);
+  const keepOpen = params.get('keepOpen') === 'true';
   return <main data-fixture-ready="true">
-    <Menu.Root>
+    <Menu.Root modal={params.get('modal') !== 'false'}>
       <Menu.Trigger>Open menu</Menu.Trigger>
       <Menu.Portal><Menu.Positioner><Menu.Popup>
         {['Alpha', 'Beta', 'Bravo', 'Charlie'].map(label => <Menu.Item key={label} disabled={label === 'Beta'} closeOnClick={!keepOpen} onClick={() => setAction(label)}>{label}</Menu.Item>)}
       </Menu.Popup></Menu.Positioner></Menu.Portal>
     </Menu.Root>
     <output data-testid="menu-action">{action}</output>
-    <button type="button" style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
+    <output data-testid="outside-click-count">{outsideClicks}</output>
+    <button type="button" onClick={() => setOutsideClicks(count => count + 1)} style={{ position: 'fixed', right: 20, top: 20 }}>Outside</button>
   </main>;
 }
 const fixture = new URLSearchParams(location.search).get('fixture');

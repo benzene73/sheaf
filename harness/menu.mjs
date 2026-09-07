@@ -17,6 +17,7 @@ const scenarios = [
   { name: 'Escape closes and returns trigger focus', keys: ['ArrowDown', 'Escape'], active: ['Alpha', null], closed: true },
   { name: 'Tab closes and moves focus outside', keys: ['ArrowDown', 'Tab'], active: ['Alpha', null], closed: true, outsideFocus: true },
   { name: 'modal backdrop pointer dismisses and restores trigger focus', keys: ['ArrowDown', 'OutsideClick'], active: ['Alpha', null], closed: true },
+  { name: 'nonmodal outside pointer activates target and retains focus', query: '&modal=false', keys: ['ArrowDown', 'OutsideClick'], active: ['Alpha', null], closed: true, outsideFocus: true, outsideClicks: 1 },
   { name: 'closeOnClick false keeps enabled action open', query: '&keepOpen=true', keys: ['ArrowDown', 'Enter'], active: ['Alpha', 'Alpha'], action: 'Alpha' },
 ];
 function snapshot() {
@@ -25,6 +26,7 @@ function snapshot() {
   return { active: focused?.getAttribute('role') === 'menuitem' ? focused.textContent.trim() : null,
     expanded: trigger.getAttribute('aria-expanded') === 'true', triggerFocused: trigger === focused,
     outsideFocused: focused?.tagName === 'BUTTON' && focused.textContent.trim() === 'Outside',
+    outsideClicks: Number(document.querySelector('[data-testid="outside-click-count"]').textContent),
     action: document.querySelector('[data-testid="menu-action"]').textContent.trim() };
 }
 const results = [];
@@ -49,7 +51,7 @@ for (const browserName of (process.env.BROWSERS || 'chromium').split(',')) {
             }
             else await page.keyboard.press(scenario.keys[i]);
             const last = i === scenario.keys.length - 1;
-            const expected = { active: scenario.active[i], expanded: !(last && scenario.closed), triggerFocused: Boolean(last && scenario.closed && !scenario.outsideFocus), outsideFocused: Boolean(last && scenario.outsideFocus), action: last && scenario.action ? scenario.action : '' };
+            const expected = { active: scenario.active[i], expanded: !(last && scenario.closed), triggerFocused: Boolean(last && scenario.closed && !scenario.outsideFocus), outsideFocused: Boolean(last && scenario.outsideFocus), outsideClicks: last && scenario.outsideClicks ? scenario.outsideClicks : 0, action: last && scenario.action ? scenario.action : '' };
             const deadline = Date.now() + 2500; let actual;
             do {
               actual = await page.evaluate(snapshot);
