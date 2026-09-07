@@ -1,7 +1,9 @@
 # Proposed next source translation: single Combobox input lifecycle
 
-Status: source mapping only; not implemented or tested. Must pass initial paired
-navigation gate and independent review before this slice is implemented.
+Status: extracted in `src/behavior/combobox-input.ts` after coordinator confirmed
+independent navigation gate. Twelve direct unit tests pass; removal of the
+selected-value cancellation guard causes test 9 to fail; restored source passes.
+Paired browser and independent review of this second slice are still pending.
 Pin: `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`.
 
 ## Bounded target
@@ -80,6 +82,18 @@ effects: { requestSelectedValue(nextValue, details), requestOpen(false, details)
 unit. No Promise exists in upstream callback cancellation; do not present async
 server validation as the same primitive contract.
 
+Implemented exports are `runSingleInputKey`, `requestSingleSelectedValue`,
+`runSingleSelection`, `completeSingleClose` and `createChangeEventDetails`.
+`InputKeyState`, `InputKeyEvent` and effect interfaces are exported from the same
+module. Keyboard function returns whether a branch handled the key; this must
+NOT be interpreted as preventDefault. The no-highlight Enter branch returns true
+but deliberately allows native form submission. Active indices use null for none
+(the list-navigation adapter must convert its -1 sentinel).
+
+`createChangeEventDetails` directly translates the upstream helper's mutable
+closure/getter semantics and custom-property spread order. Its TypeScript type
+uses general Event rather than upstream's full reason-specific event union.
+
 ### Close completion
 
 `AriaCombobox.tsx:927–970` (`handleUnmount`): mark unmounted, call completion,
@@ -124,3 +138,15 @@ ack marks acceptance or mere receipt; receipt must never imply acceptance.
 
 Port the :1131 composition into shared browser scenarios. Add independent
 LiveView delayed-ack tests rather than weakening shared upstream scenarios.
+
+## Local test scope and negative control
+
+Run `node --test tests/unit/combobox-input.test.cjs`. Twelve tests check callback
+ordering, cancellation, event propagation, readOnly Enter, no-highlight native
+submission policy, code229 guard, RTL/Gecko caret decisions and close restoration.
+These are effect-double tests, not browser integration evidence.
+
+Negative control run: remove `if (details.isCanceled) return` immediately after
+onValueChange in requestSingleSelectedValue. Test9 fails because rejected values
+reach assignment/input effects. Source was restored byte-for-byte and all12 pass.
+This is separate from, and does not substitute for, paired browser mutation tests.
