@@ -142,10 +142,12 @@ export function startAnchorPositioning(
   let latestUpdate = 0;
   const options = createAnchorPositioningOptions({ ...params, isMounted: () => mounted });
   // Same initial-position and available-size seed policy as upstream styles.
-  Object.assign(floating.style, { position: 'fixed', top: '0px', left: '0px', opacity: '0' });
+  Object.assign(floating.style, { position: 'fixed', top: '0px', left: '0px', transform: '', opacity: '0' });
+  delete floating.dataset.positioned;
   floating.style.setProperty('--available-width', '100vw');
   floating.style.setProperty('--available-height', '100vh');
   async function update() {
+    if (!mounted) return;
     const sequence = ++latestUpdate;
     const result = await computePosition(anchor, floating, options);
     if (!mounted || sequence !== latestUpdate) return;
