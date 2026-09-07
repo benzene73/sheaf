@@ -7,14 +7,16 @@ import { Menu } from '@base-ui/react/menu';
 const items = ['Apple', 'Banana', 'Cherry'];
 function Fixture() {
   const params = new URLSearchParams(location.search);
+  const fixtureItems = params.get('items') === 'locale' ? ['Café', 'Tea', 'Apple', 'Banana', 'Cherry'] : items;
   const [accepted, setAccepted] = React.useState<string | null>(params.get('defaultValue'));
   const [submits, setSubmits] = React.useState(0);
   const [valueChanges, setValueChanges] = React.useState(0);
+  const [submitted, setSubmitted] = React.useState('');
   const loopFocus = params.get('loop') !== 'false';
   return <main data-fixture-ready="true">
     <h1>Pinned Base UI React reference</h1>
-    <form onSubmit={event => { event.preventDefault(); setSubmits(count => count + 1); }}>
-    <Combobox.Root items={items} value={accepted} loopFocus={loopFocus}
+    <form onSubmit={event => { event.preventDefault(); setSubmits(count => count + 1); setSubmitted(String(new FormData(event.currentTarget).get('fruit') || '')); }}>
+    <Combobox.Root name="fruit" items={fixtureItems} value={accepted} loopFocus={loopFocus}
       readOnly={params.get('readOnly') === 'true'}
       onValueChange={(value, details) => {
         setValueChanges(count => count + 1);
@@ -38,6 +40,7 @@ function Fixture() {
     <output data-testid="accepted-value">{accepted || ''}</output>
     <output data-testid="submit-count">{submits}</output>
     <output data-testid="value-change-count">{valueChanges}</output>
+    <output data-testid="last-submitted-value">{submitted}</output>
     <button type="button">Outside</button>
   </main>;
 }
