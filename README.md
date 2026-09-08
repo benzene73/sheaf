@@ -16,7 +16,7 @@ database**. Kaguya and Nila source/data are not part of the application. On the
 current machine use Ubuntu WSL for Mix:
 
 ```sh
-cd /mnt/d/liveview-primitives-lab
+cd /mnt/d/sheaf
 mix deps.get
 npm ci
 npm run build:liveview

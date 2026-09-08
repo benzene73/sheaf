@@ -5,7 +5,7 @@ import path from 'node:path';
 import { build } from 'esbuild';
 
 // Run only while the coordinator has reserved this source file and served bundle.
-const lab = path.resolve(process.env.LAB_ROOT || '../liveview-primitives-lab');
+const lab = path.resolve(process.env.LAB_ROOT || '../sheaf');
 const sourcePath = path.join(lab, 'src/behavior/list-navigation.ts');
 const original = readFileSync(sourcePath);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
