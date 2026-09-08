@@ -9,7 +9,9 @@ import {requirePart, type HookDefinition} from './hook-types';
 interface State {
   anchor: HTMLButtonElement; popup: HTMLElement; controller: NativePopupController;
   valueDisplay: HTMLElement;
-  accepted: string | null; typing: boolean;
+  accepted: string | null;
+  formMode: boolean; hidden: HTMLInputElement | null; form: HTMLFormElement | null;
+  serverValue: string | null; dead: boolean; onReset: (event: Event) => void; typing: boolean;
   typeahead: ReturnType<typeof createSelectTypeahead<string>>;
   onTriggerKey: (event: KeyboardEvent) => void;
   onPopupKey: (event: KeyboardEvent) => void;
@@ -26,6 +28,7 @@ interface Methods {
 
 /** Single Select, explicit alignItemWithTrigger=false. Native integration is
  * separate from the source-translated value, navigation and typeahead policies.
+ * Form mode emits native field events; legacy observer mode emits select_value.
  * Cancellation here is an explicit synchronous policy supplied by the server;
  * asynchronous validation/rollback is not claimed by this bounded fixture. */
 export const NativeSelect: HookDefinition<State, Methods, {},
@@ -35,13 +38,22 @@ export const NativeSelect: HookDefinition<State, Methods, {},
     this.valueDisplay = requirePart(this.anchor, '[data-part=value]', HTMLElement);
     this.popup = requirePart(this.el, '[data-part=select]', HTMLElement);
     this.accepted = this.el.dataset.accepted || null;
+    this.serverValue = this.accepted; this.dead = false;
+    this.formMode = this.el.dataset.mode === 'form';
+    this.hidden = this.el.querySelector<HTMLInputElement>('[data-part=hidden]');
+    this.form = this.hidden?.form ?? this.anchor.form;
+    this.onReset = event => queueMicrotask(() => {
+      if (event.defaultPrevented || this.dead || !this.formMode) return;
+      this.accepted = this.serverValue; this.controller.close(false); this.sync(); this.typeahead.sync();
+    });
+    this.form?.addEventListener('reset', this.onReset);
     this.typing = false;
     this.typeahead = createSelectTypeahead<string>({
       getState: () => {
         const rows = this.rows();
         const active = rows.findIndex(row => row === this.el.ownerDocument.activeElement);
         const selected = rows.findIndex(row => row.dataset.value === this.accepted);
-        return {labels: rows.map(row => row.textContent?.trim() ?? null), elements: rows,
+        return {labels: rows.map(row => row.dataset.label ?? row.textContent?.trim() ?? null), elements: rows,
           values: rows.map(row => row.dataset.value!), activeIndex: active < 0 ? null : active,
           selectedIndex: selected < 0 ? null : selected, open: this.controller?.open ?? false,
           disabled: this.anchor.disabled, readOnly: this.el.dataset.readOnly === 'true'};
@@ -101,11 +113,17 @@ export const NativeSelect: HookDefinition<State, Methods, {},
   rows() { return Array.from(this.popup.querySelectorAll<HTMLElement>('[role=option]')); },
   focusIndex(index) { if (index !== null) this.rows()[index]?.focus(); },
   requestValue(value, details) {
+    const previous = this.accepted;
     requestSelectValue(value, details, {
       onValueChange: (_, change) => { if (this.el.dataset.cancelValue === 'true') change.cancel(); },
       assignValue: next => { this.accepted = next; this.sync(); },
     });
-    this.pushEvent('select_value', {component_id: this.el.id, value, canceled: details.isCanceled});
+    if (this.formMode) {
+      if (!details.isCanceled && this.accepted !== previous && this.hidden) {
+        this.hidden.dispatchEvent(new Event('input', {bubbles: true}));
+        this.hidden.dispatchEvent(new Event('change', {bubbles: true}));
+      }
+    } else this.pushEvent('select_value', {component_id: this.el.id, value, canceled: details.isCanceled});
   },
   activate(row, event) {
     const value = row.dataset.value;
@@ -119,11 +137,17 @@ export const NativeSelect: HookDefinition<State, Methods, {},
   sync() {
     this.controller.refresh();
     const selected = this.rows().find(row => row.dataset.value === this.accepted);
-    this.valueDisplay.textContent = selected?.textContent?.trim() || this.accepted || this.valueDisplay.dataset.placeholder || '';
+    this.valueDisplay.textContent = selected?.dataset.label ?? selected?.textContent?.trim() ?? this.accepted ?? this.valueDisplay.dataset.placeholder ?? '';
+    if (this.formMode && this.hidden) this.hidden.value = this.accepted ?? '';
     for (const row of this.rows()) row.setAttribute('aria-selected', String(row.dataset.value === this.accepted));
   },
-  updated() { this.accepted = this.el.dataset.accepted || null; this.sync(); this.typeahead.sync(); },
+  updated() {
+    const serverValue = this.el.dataset.accepted || null;
+    if (!this.formMode || serverValue !== this.serverValue) this.accepted = serverValue;
+    this.serverValue = serverValue; this.sync(); this.typeahead.sync();
+  },
   destroyed() {
+    this.dead = true; this.form?.removeEventListener('reset', this.onReset);
     this.typeahead.destroy(); this.controller.destroy();
     this.anchor.removeEventListener('keydown', this.onTriggerKey);
     this.popup.removeEventListener('keydown', this.onPopupKey);

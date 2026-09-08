@@ -10,7 +10,7 @@ defmodule Lab.NestedLive do
       <Controls.dialog id="nested-profile" label="Edit profile">
         <:trigger>Edit profile</:trigger>
         <.form for={%{}} id="nested-profile-form" phx-submit="save">
-          <Controls.select id="nested-country" label="Country" name="country" value={@country}
+          <Controls.select mode="observer" id="nested-country" label="Country" name="country" value={@country}
             options={[%{value: "GB", label: "United Kingdom"}, %{value: "IN", label: "India"}]} />
           <button type="submit">Save</button>
         </.form>

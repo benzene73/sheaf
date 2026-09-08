@@ -1,6 +1,6 @@
 import Config
 
-config :primitive_lab, Lab.Endpoint,
+config :sheaf_demo, Lab.Endpoint,
   url: [host: "localhost"],
   http: [ip: {0, 0, 0, 0}, port: String.to_integer(System.get_env("PORT", "4197"))],
   adapter: Bandit.PhoenixAdapter,

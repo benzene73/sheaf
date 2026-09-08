@@ -15,6 +15,7 @@ defmodule Lab.Router do
     live("/lab", Lab.HomeLive)
     live("/components", Lab.ComponentsLive)
     live("/nested", Lab.NestedLive)
+    live("/forms", Lab.FormsLive)
     live("/paired", Lab.PairedLive)
     live("/label-combobox", Lab.LabelComboboxLive)
     live("/positioning", Lab.PositioningLive)

@@ -12,7 +12,7 @@ defmodule Lab.LabelComboboxLive do
     <main class="lab-demo">
       <h1>Combobox labels and values</h1>
       <form id="country-form" phx-submit="submit">
-        <.combobox id="country-combobox" label="Country" name="country" value={@accepted}
+        <.combobox mode="async" id="country-combobox" label="Country" name="country" value={@accepted}
           options={[%{value: "gb", label: "United Kingdom"}, %{value: "in", label: "India"}]} />
         <button type="submit">Submit</button>
       </form>

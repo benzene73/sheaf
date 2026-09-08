@@ -8,7 +8,7 @@ defmodule Lab.ComponentsLive do
     ~H"""
     <main class="lab-demo">
       <h1>Public component API</h1>
-      <.select id="country" label="Country" name="country" value={@country}
+      <.select mode="observer" id="country" label="Country" name="country" value={@country}
         options={[%{value: "GB", label: "United Kingdom"}, %{value: "IN", label: "India"}]}>
         <:trigger><span data-testid="country-chevron" aria-hidden="true">⌄</span></:trigger>
       </.select>

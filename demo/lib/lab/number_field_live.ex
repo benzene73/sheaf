@@ -8,7 +8,7 @@ defmodule Lab.NumberFieldLive do
     ~H"""
     <main class="lab-demo">
       <form id="number-form" phx-submit="submit">
-        <Controls.number_field id="amount-field" label="Amount" name="amount" default_value={10}
+        <Controls.number_field mode="observer" id="amount-field" label="Amount" name="amount" default_value={10}
           min={0} max={100} step={0.5} format={%{maximumFractionDigits: 2}} />
         <button type="submit">Submit</button>
       </form>

@@ -1,15 +1,22 @@
 defmodule Sheaf.Controls do
   @moduledoc """
-  Headless, browser-owned controls. `default_value` is read when the hook mounts;
-  later server patches do not reset the user's interaction state.
+  Headless controls. NumberField integrates with Phoenix form fields by default.
+  Tabs and Accordion retain browser-owned state initialized by `default_value`.
   """
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  attr(:id, :string, required: true)
-  attr(:label, :string, required: true)
-  attr(:name, :string, required: true)
+  attr(:field, Phoenix.HTML.FormField, default: nil)
+  attr(:id, :string)
+  attr(:label, :string, default: nil)
+  attr(:name, :string)
+  attr(:value, :any)
   attr(:default_value, :any, default: nil)
+  attr(:mode, :string, values: ["form", "observer"], default: "form")
+  attr(:errors, :list, default: nil)
+  attr(:translate_error, :any, default: nil)
+  attr(:described_by, :string, default: nil)
+  attr(:error_class, :string, default: nil)
   attr(:min, :any, default: nil)
   attr(:max, :any, default: nil)
   attr(:step, :any, default: 1)
@@ -22,19 +29,38 @@ defmodule Sheaf.Controls do
   attr(:button_class, :string, default: nil)
 
   def number_field(assigns) do
+    assigns =
+      if is_nil(assigns.field) and not Map.has_key?(assigns, :value),
+        do: assign(assigns, :value, assigns.default_value),
+        else: assigns
+
+    assigns = Sheaf.FormField.assign_field(assigns)
+
+    error_ids =
+      Enum.with_index(assigns.errors, fn _, index ->
+        assigns.id <> "-error-" <> to_string(index)
+      end)
+
+    described_by = Enum.reject([assigns.described_by | error_ids], &is_nil/1) |> Enum.join(" ")
+
+    assigns =
+      assign(assigns, :described_by_value, if(described_by == "", do: nil, else: described_by))
+
     ~H"""
-    <div id={@id} class={@class} phx-hook="PortedNumberField" data-value={@default_value}
+    <div id={@id} class={@class} phx-hook="PortedNumberField" data-value={@value} data-mode={@mode}
       data-min={@min} data-max={@max} data-step={@step} data-locale={@locale} data-format={Jason.encode!(@format)}>
-      <label for={@id <> "-input"}>{@label}</label>
+      <label :if={@label} for={@id <> "-input"}>{@label}</label>
       <button type="button" data-part="decrease" aria-label="Decrease" tabindex="-1"
-        aria-controls={@id <> "-input"} class={@button_class} disabled={@disabled or @read_only}>−</button>
+        aria-controls={@id <> "-input"} class={@button_class} disabled={@disabled or @read_only}>&minus;</button>
       <input id={@id <> "-input"} data-part="input" type="text" inputmode="decimal" aria-label={@label}
-        class={@input_class} value={@default_value} disabled={@disabled} readonly={@read_only}
+        aria-invalid={if @errors != [], do: "true"} aria-describedby={@described_by_value}
+        class={@input_class} value={@value} disabled={@disabled} readonly={@read_only}
         phx-mounted={JS.ignore_attributes(["value"])} />
       <button type="button" data-part="increase" aria-label="Increase" tabindex="-1"
         aria-controls={@id <> "-input"} class={@button_class} disabled={@disabled or @read_only}>+</button>
-      <input id={@id <> "-hidden"} data-part="hidden" type="hidden" name={@name} value={@default_value}
-        disabled={@disabled} phx-mounted={JS.ignore_attributes(["value"])} />
+      <input id={@id <> "-hidden"} data-part="hidden" type="hidden" name={@name} value={@value}
+        disabled={@disabled} phx-mounted={if @mode == "observer", do: JS.ignore_attributes(["value"])} />
+      <p :for={{error, index} <- Enum.with_index(@errors)} id={@id <> "-error-" <> to_string(index)} class={@error_class}>{error}</p>
     </div>
     """
   end

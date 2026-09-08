@@ -9,30 +9,60 @@ Pinned upstream: `4d92faa1a4da6a5fe66a6194401470974fc2f8fe`. Translated files re
 MIT attribution. Mapping, scope and deliberate differences live in
 [docs/upstream-mapping](docs/upstream-mapping); see [PORTING.md](PORTING.md).
 
-## Run
+## Use the library
 
-This is an independent Phoenix application with its own dependencies and **no
-database**. Kaguya and Nila source/data are not part of the application. On the
+The root Mix project is the `:sheaf` component library. It has no endpoint,
+application supervisor, database or demo configuration. Its direct dependencies
+are Phoenix LiveView and Jason; Bandit belongs to the separate demo application.
+To consume this checkout from another Phoenix application's `mix.exs`:
+
+```elixir
+{:sheaf, path: "../sheaf"}
+```
+
+Run `mix deps.get` in the consuming app. Build the client entry in this repository
+with `npm ci && npm run build:primitives`, then import `hooks` from the generated
+private local package into the application's existing LiveSocket. The generated
+`dist/package.json` records runtime dependencies and exports; see
+[client build](docs/build.md) for local package installation and
+[docs/components.md](docs/components.md) for the component APIs.
+
+There is no published Hex or npm release. The root package file list includes
+the reusable Elixir/client code, generated client build, licenses and docs;
+it excludes the demo, upstream harness, test artifacts and development tooling.
+
+## Run the demo
+
+`demo/` is an independent Phoenix application with its own dependencies and **no
+database**, consuming Sheaf through `{:sheaf, path: ".."}`. Kaguya and Nila
+source/data are not part of the application. On the
 current machine use Ubuntu WSL for Mix:
 
 ```sh
 cd /mnt/d/sheaf
 mix deps.get
 npm ci
+cd demo
+mix deps.get
+cd ..
 npm run build:liveview
+mix compile --warnings-as-errors
+cd demo
 mix compile --warnings-as-errors
 mix phx.server
 ```
 
 Open **http://localhost:4197/lab**. `PORT` overrides 4197. Do not run the historical
-`server.exs` bootstrap. Run Mix consistently under one runtime; mixing Windows
+`server.exs` bootstrap. The demo's configuration lives in `demo/config/`,
+fixtures in `demo/lib/lab/`, and browser entry in `demo/assets/client.js`.
+Run Mix consistently under one runtime; mixing Windows
 and WSL builds in the same `_build` directory causes needless recompilation.
 
 ## Components
 
 | Family | Demo | Scope |
 | --- | --- | --- |
-| Combobox | `/paired`, `/label-combobox` | Filtering, distinct labels/IDs, positioned popup, selection acknowledgements |
+| Combobox | `/forms`, `/paired`, `/label-combobox` | Native forms, custom option content, optional async approval |
 | Menu | `/menu`, `/menu-form` | Single-level actions, native form submissions, navigation, typeahead, dismissal |
 | Select | `/select` | Single selection, forms, accepted-value reconciliation |
 | Popover | `/positioning?behavior=true&size=normal` | Collision positioning, native top layer, bounded focus policy |
@@ -42,6 +72,8 @@ and WSL builds in the same `_build` directory causes needless recompilation.
 | Tooltip | `/tooltip` | Focus/hover, Escape/blur, descriptions; fixture uses zero delay |
 | Accordion | `/accordion` | Single-open disclosure, keyboard activation, disabled items |
 | Toggle group | `/toggle-group` | Pressed buttons, roving focus, single/multiple selection |
+
+`/forms` demonstrates field-backed Combobox, Select and NumberField with validation, submission, resets and custom option content. See [API policy](docs/api-policy.md).
 
 `/components` demonstrates the reusable dialog/menu/select/popover helpers.
 `/nested` exercises a Select inside a Dialog through selection and Save patches.
@@ -57,6 +89,7 @@ implementation is **not** evidence of a source port.
 ## Verify
 
 ```sh
+mix test
 npm run typecheck
 npm run test:unit
 npx playwright install chromium
@@ -90,4 +123,5 @@ slice must never be presented as full Base UI parity.
 
 Recommended first application integrations: [adoption targets](docs/adoption.md).
 Experiment assessment: [viability verdict](docs/viability-verdict.md).
-Latest integrated results: [Chromium gate](docs/runs/2026-09-07-final-integration.md).
+Latest API integration: [forms and packaging](docs/runs/2026-09-08-forms-and-composition.md).
+Original port results: [Chromium gate](docs/runs/2026-09-07-final-integration.md).

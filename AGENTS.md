@@ -1,11 +1,9 @@
-# LiveView Base UI port playground
+# Sheaf
 
 Read PORTING.md and ARCHITECTURE.md before implementation. The ten-minute
 prototype is historical scaffolding, not evidence of an upstream port.
 
-Deadline: 2026-09-07 20:30 UTC (02:00 September 8 Asia/Calcutta), corrected by user.
-This overrides the earlier 2 p.m. deadline in the original goal description. Stop implementation at
-deadline and report reproducible evidence. Coordinator controls integration.
+The initial timeboxed experiment is complete. The current user-authorized phase separates the library from its demo, establishes Phoenix form contracts, and adds practical content composition. Verify ordinary usability and focused regressions; do not expand testing past useful returns. Keep Kaguya and Nila source/data untouched during this library phase.
 
 ## Rules
 - Work only in assigned files/worktree. No Kaguya/Nila application changes.

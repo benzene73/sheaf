@@ -1,6 +1,6 @@
-import {Socket} from './deps/phoenix/priv/static/phoenix.mjs';
-import {LiveSocket} from './deps/phoenix_live_view/priv/static/phoenix_live_view.esm.js';
-import {hooks as primitiveHooks} from './src/liveview';
+import {Socket} from '../deps/phoenix/priv/static/phoenix.mjs';
+import {LiveSocket} from '../deps/phoenix_live_view/priv/static/phoenix_live_view.esm.js';
+import {hooks as primitiveHooks} from '../../src/liveview';
 const Combo = {
   mounted() {
     this.input = this.el.querySelector('#query');

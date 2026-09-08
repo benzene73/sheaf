@@ -4,25 +4,21 @@ Alias `Sheaf.Controls` and register the exported hook collection.
 These helpers centralize structural markup, labels, IDs and ARIA. Supply classes
 for appearance. Unique string item values and a stable root ID are required.
 
-`default_value` is read at mount. LiveView notifications let the application
-observe changes, but later patches do not reset client state. These helpers do
-not claim server-controlled values, asynchronous approval or form-validation
-integration. Remount deliberately when a complete reset is intended.
+Tabs and Accordion retain browser-owned default values and observer notifications.
+NumberField instead supports ordinary Phoenix form fields by default.
 
 ## Number field
 
 ```heex
-<Controls.number_field id="quantity" label="Quantity" name="line[quantity]"
-  default_value={1} min={0} max={1000} step={0.5} />
+<Controls.number_field field={@form[:quantity]} label="Quantity"
+  min={0} max={1000} step={0.5} />
 ```
 
-`number_change` and `number_commit` include `component_id` and `value` (number or
-null). The hidden form input holds the browser's canonical numeric value; raw
-uncommitted text stays in the visible input. Parsing, formatting, bounds and
-fractional steps are implemented. `locale`, `format`, `disabled`, `read_only`,
-`input_class` and `button_class` are supported. No hold-repeat, scrubbing or wheel
-control is exposed. JavaScript numbers are not an accounting Decimal contract:
-applications must preserve their own exact monetary parsing and validation.
+`mode="form"` is the default. A field derives id/name/value and used-input errors; explicit id/name/value overrides take precedence. Without a field, supply id/name/value (`default_value` remains a fallback for existing callers). Standard `.form phx-change/phx-submit` receives the canonical number through the hidden named input. The control emits input when that number changes and change on commit; no number_change/number_commit handlers are required. Intermediate numeric text remains local.
+
+Native reset restores the latest server-rendered baseline without an extra change event. Updated server values reconcile the control, while an acknowledgement of the current number preserves a draft such as a trailing decimal. Unrelated patches do not erase browser state. Errors support `errors`, `translate_error`, `error_class`, and external `described_by`; the visible input receives linked error IDs and aria-invalid.
+
+`mode="observer"` retains number_change/number_commit notifications with component_id and value. Raw hook fixtures without data-mode retain observer behavior. Parsing, formatting, bounds, fractional steps, locale/format, disabled/read_only and part classes remain supported. No hold-repeat, scrub or wheel control is exposed. JavaScript numeric state is not an exact accounting Decimal contract; applications still validate their submitted values.
 
 ## Tabs
 

@@ -9,6 +9,7 @@ defmodule Lab.HomeLive do
       <p class="lab-intro">Try the controls, including their keyboard behavior. These are experimental ports of selected Base UI behaviors, with native browser primitives underneath where appropriate.</p>
       <div class="lab-grid">
         <.link :for={{title, path, description} <- [
+          {"Phoenix forms", "/forms", "Field-backed inputs, validation, custom options, save and reset without a custom selection protocol."},
           {"Combobox", "/paired", "Search, choose, validate on the server, and keep editing without stale replies taking over."},
           {"Combobox labels", "/label-combobox", "Display a readable label while storing and submitting its stable ID."},
           {"Menu", "/menu", "Actions with keyboard navigation, typeahead, focus restoration, and outside dismissal."},

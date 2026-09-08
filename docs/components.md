@@ -53,16 +53,24 @@ The optional native_actions slot owns the form; menu_submit supplies a real subm
 ## Select
 
 ```heex
-<.select id="country" label="Country" name="profile[country]" value={@country}
-  options={[%{value: "GB", label: "United Kingdom"}, %{value: "IN", label: "India"}]}
-  placeholder="Choose country">
-  <:trigger><span aria-hidden="true">&#8964;</span></:trigger>
+<.select field={@form[:country]} label="Country"
+  options={[%{value: "GB", label: "United Kingdom"}, %{value: "IN", label: "India"}]}>
+  <:item :let={option}>
+    <span aria-hidden="true">🌍</span> {option.label}
+  </:item>
+  <:trigger><span aria-hidden="true">⌄</span></:trigger>
 </.select>
 ```
 
-The selected-label span is owned by the component. The optional trigger slot adds decoration without replacing it. IDs and labels may differ. `select_value` sends `%{"component_id" => id, "value" => value, "canceled" => boolean}`. Validate the chosen option, then update the corresponding `value` assign for accepted changes. If `cancel_value` is true, retain the old assign. The hook provides immediate local feedback and reconciles that accepted assign on patches; it is not asynchronous validation with rollback.
+In default `mode="form"`, this works inside ordinary `.form phx-change/phx-submit` handlers: accepted selections update a named hidden input and emit bubbling input/change events. No select_value handler is required. Native form reset restores the latest server-rendered value without fabricating another change event. Server value changes reconcile the selection; unrelated patches preserve a local selection that has not yet been acknowledged.
 
-`name` optionally supplies the hidden form field. It reflects the server accepted assign, so update that assign promptly rather than treating the notification as logging only. `disabled` disables the trigger and form field; `read_only` permits browsing but rejects changes. The optional `modal` flag defaults true. No multiple selection, arbitrary item renderer or default item-aligned positioning is exposed.
+`field` derives id, name, value and used-input errors. Explicit id/name/value overrides win, including an explicit nil. Without a field, supply a stable id and name/value directly. Errors can be overridden with `errors`, translated with `translate_error`, styled with `error_class`, and are linked through aria-invalid/aria-describedby; `described_by` preserves an additional external description.
+
+The optional item slot customizes content inside each canonical option; its `:let` receives the option map. Option label remains the semantic accessible/typeahead/selected label even when extra decoration or text is rendered. The trigger slot adds decoration after the owned selected-label span. Values and labels may differ.
+
+For existing observer integrations, opt into `mode="observer"`: select_value emits component_id, value and canceled, and the host updates the accepted value assign. Raw legacy hook markup without data-mode retains that behavior. `disabled`, `read_only`, synchronous `cancel_value`, and `modal` retain their existing meanings. This is single selection, without asynchronous approval or item-aligned positioning.
+
+Menu also accepts `<:item :let={option}>` with the same semantic-label/content separation. Its existing options, native form-action slot and event contract are unchanged.
 
 ## Popover
 

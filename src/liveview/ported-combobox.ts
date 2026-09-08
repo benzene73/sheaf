@@ -24,6 +24,10 @@ interface PendingSelection {
   closeAfter: boolean;
 }
 interface ComboboxState {
+  asyncSelection: boolean;
+  serverValue: string | null;
+  form: HTMLFormElement | null;
+  onReset: (event: Event) => void;
   instance: string;
   input: HTMLInputElement;
   list: HTMLElement;
@@ -45,6 +49,7 @@ interface ComboboxState {
   keyboardActive?: boolean;
   onKey: (event: KeyboardEvent) => void;
   onInput: (event: Event) => void;
+  onDraftChange: (event: Event) => void;
   onCompositionStart: (event: CompositionEvent) => void;
   onCompositionEnd: (event: CompositionEvent) => void;
   onPointerDown: (event: PointerEvent) => void;
@@ -63,6 +68,7 @@ interface ComboboxMethods {
   sync(): void;
   setInput(value: string): void;
   requestInput(value: string, details: ChangeEventDetails): void;
+  syncForm(notify: boolean): void;
 }
 type IncomingEvents = { selection_result: SelectionReply };
 type OutgoingEvents = {
@@ -76,9 +82,12 @@ type OutgoingEvents = {
 export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, IncomingEvents, OutgoingEvents> = {
   mounted() {
     if (!this.el.id) throw new Error('Combobox requires a unique DOM id');
+    // Missing mode preserves historical raw bridge fixtures; the public helper
+    // always explicitly renders form mode unless async approval is requested.
+    this.asyncSelection = this.el.dataset.mode !== 'form';
     this.instance = Array.from(crypto.getRandomValues(new Uint8Array(16)),
       value => value.toString(16).padStart(2, '0')).join('');
-    this.pushEvent('combobox_mount', {component_id: this.el.id, instance: this.instance});
+    if (this.asyncSelection) this.pushEvent('combobox_mount', {component_id: this.el.id, instance: this.instance});
     this.input = requirePart(this.el, '[data-part=input]', HTMLInputElement);
     this.list = requirePart(this.el, '[data-part=list]', HTMLElement);
     this.positioned = this.list.getAttribute('popover') === 'manual';
@@ -92,6 +101,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.handleEvent('selection_result', (reply: SelectionReply) => this.finishProposal(reply));
     this.queryChanged = false;
     this.accepted = this.el.dataset.accepted || null;
+    this.serverValue = this.accepted;
     this.queryValue = this.valueLabel(this.accepted);
     this.composingValue = null;
     this.input.value = this.queryValue;
@@ -160,10 +170,16 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
       }
     };
     this.onInput = event => {
+      // The text input is an unnamed search draft. Only the canonical hidden
+      // input should notify a surrounding Phoenix form of value changes.
+      if (!this.asyncSelection) event.stopPropagation();
       if (this.input.readOnly || this.input.disabled) return;
       this.invalidate();
       this.change.onChange({currentTarget: this.input, nativeEvent: event});
       this.sync();
+    };
+    this.onDraftChange = event => {
+      if (!this.asyncSelection) event.stopPropagation();
     };
     this.onCompositionStart = event => {
       this.invalidate();
@@ -187,11 +203,30 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     };
     this.input.addEventListener('keydown', this.onKey);
     this.input.addEventListener('input', this.onInput);
+    this.input.addEventListener('change', this.onDraftChange);
     this.input.addEventListener('compositionstart', this.onCompositionStart);
     this.input.addEventListener('compositionend', this.onCompositionEnd);
     this.list.addEventListener('pointerdown', this.onPointerDown);
     this.list.addEventListener('click', this.onClick);
     this.el.ownerDocument.addEventListener('pointerdown', this.onOutside);
+    this.form = this.input.form;
+    this.onReset = event => {
+      if (this.asyncSelection) return;
+      queueMicrotask(() => {
+        if (this.dead || event.defaultPrevented) return;
+        this.accepted = this.el.dataset.accepted || null;
+        this.pending = null;
+        this.composingValue = null;
+        this.queryChanged = false;
+        this.open = false;
+        this.popupMounted = false;
+        this.active = null;
+        this.setInput(this.valueLabel(this.accepted));
+        this.syncForm(false);
+        this.sync();
+      });
+    };
+    this.form?.addEventListener('reset', this.onReset);
     this.sync();
     this.el.dataset.fixtureReady = 'true';
   },
@@ -239,11 +274,16 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
   invalidate() {
     ++this.intent;
     this.pending = null;
-    this.pushEvent('intent', {component_id: this.el.id, instance: this.instance, generation: this.intent});
+    if (this.asyncSelection) this.pushEvent('intent', {component_id: this.el.id, instance: this.instance, generation: this.intent});
   },
   propose(value: string | null, details: ChangeEventDetails, closeAfter: boolean) {
     const requestId = ++this.requestId;
     this.pending = {requestId, intent: this.intent, value, details, closeAfter};
+    if (!this.asyncSelection) {
+      this.finishProposal({component_id: this.el.id, instance: this.instance,
+        request_id: requestId, generation: this.intent, accepted: true, obsolete: false, value});
+      return;
+    }
     this.pushEvent('select', {component_id: this.el.id, instance: this.instance,
       value, request_id: requestId, generation: this.intent});
   },
@@ -255,6 +295,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     this.pending = null;
     if (reply.obsolete) return;
     const {value, details, closeAfter} = pending;
+    const previousAccepted = this.accepted;
     const requestSelectedValue = (next: string | null, change: ChangeEventDetails) => requestSingleSelectedValue(next, change, {
       onValueChange: (_value: string | null, mutable: ChangeEventDetails) => { if (!reply.accepted) mutable.cancel(); },
       assignValue: () => { this.accepted = reply.value || null; },
@@ -265,9 +306,19 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
       requestSelectedValue, requestOpen: (_open: false, change: ChangeEventDetails) => this.close(change),
     });
     else requestSelectedValue(value, details);
+    if (!this.asyncSelection) this.syncForm(previousAccepted !== this.accepted);
     const output = this.el.querySelector('[data-part=value-change-count]');
     if (output) output.textContent = String(++this.valueChanges);
     this.sync();
+  },
+  syncForm(notify) {
+    const field = this.el.querySelector<HTMLInputElement>('input[data-part=value]');
+    if (!field) return;
+    field.value = this.accepted ?? '';
+    if (notify) {
+      field.dispatchEvent(new Event('input', {bubbles: true}));
+      field.dispatchEvent(new Event('change', {bubbles: true}));
+    }
   },
   sync() {
     if (this.dead) return;
@@ -279,6 +330,7 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     }, filter);
     for (const row of this.allRows()) {
       row.hidden = !filter.contains(row.dataset.label ?? row.textContent ?? '', filterQuery);
+      if (!this.asyncSelection) row.setAttribute('aria-selected', String(row.dataset.value === this.accepted));
     }
     if (this.positioned) {
       if (this.open) {
@@ -300,6 +352,27 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     else { this.active = null; this.input.removeAttribute('aria-activedescendant'); }
   },
   updated() {
+    if (!this.asyncSelection) {
+      const serverValue = this.el.dataset.accepted || null;
+      if (serverValue !== this.serverValue) {
+        this.serverValue = serverValue;
+        // An echo of the local selection acknowledges the form change. It must
+        // not erase a newer search draft or IME session started before the patch.
+        if (serverValue !== this.accepted) {
+          this.accepted = serverValue;
+          this.pending = null;
+          this.queryChanged = false;
+          this.composingValue = null;
+        }
+      }
+      if (!this.queryChanged && this.composingValue === null) {
+        this.setInput(this.valueLabel(this.accepted));
+      }
+      this.syncForm(false);
+      if (this.composingValue !== null) this.input.value = this.composingValue;
+      this.sync();
+      return;
+    }
     // Canonical reconciliation is independent of a pending interaction. A stale
     // continuation must not freeze the browser's accepted-value snapshot.
     const previousAccepted = this.accepted;
@@ -316,10 +389,12 @@ export const PortedCombobox: HookDefinition<ComboboxState, ComboboxMethods, Inco
     if (this.positioned && this.list.matches(':popover-open')) this.list.hidePopover();
     this.input.removeEventListener('keydown', this.onKey);
     this.input.removeEventListener('input', this.onInput);
+    this.input.removeEventListener('change', this.onDraftChange);
     this.input.removeEventListener('compositionstart', this.onCompositionStart);
     this.input.removeEventListener('compositionend', this.onCompositionEnd);
     this.list.removeEventListener('pointerdown', this.onPointerDown);
     this.list.removeEventListener('click', this.onClick);
     this.el.ownerDocument.removeEventListener('pointerdown', this.onOutside);
+    this.form?.removeEventListener('reset', this.onReset);
   },
 };

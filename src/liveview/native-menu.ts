@@ -41,7 +41,7 @@ export const NativeMenu: HookDefinition<State, Methods, {}, {menu_action: {compo
       getState: () => {
         const rows = this.rows();
         const index = rows.findIndex(row => row === this.el.ownerDocument.activeElement);
-        return {labels: rows.map(row => row.textContent?.trim() ?? null), elements: rows,
+        return {labels: rows.map(row => row.dataset.label ?? row.textContent?.trim() ?? null), elements: rows,
           activeIndex: index < 0 ? null : index, open: this.open};
       },
       onMatch: index => { if (this.open) this.focusIndex(index); },

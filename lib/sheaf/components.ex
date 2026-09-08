@@ -57,6 +57,11 @@ defmodule Sheaf.Components do
   attr(:popup_class, :string, default: nil)
   attr(:item_class, :string, default: nil)
   attr(:rest, :global)
+
+  slot(:item,
+    doc: "Custom row content; :let receives the option map. Semantic label is retained."
+  )
+
   slot(:trigger, required: true)
   slot(:native_actions, doc: "Caller-owned form containing menu_submit controls.")
 
@@ -74,8 +79,8 @@ defmodule Sheaf.Components do
         <div id={@id <> "-popup"} data-part="menu" role="menu" aria-label={@label}
           class={@popup_class} style={@popup_style}>
           <div :for={option <- @options} id={@id <> "-item-" <> URI.encode_www_form(option.value)}
-            data-value={option.value} role="menuitem" tabindex="-1"
-            aria-disabled={to_string(Map.get(option, :disabled, false))} class={@item_class}>{option.label}</div>
+            data-value={option.value} data-label={option.label} aria-label={option.label} role="menuitem" tabindex="-1"
+            aria-disabled={to_string(Map.get(option, :disabled, false))} class={@item_class}>{if @item == [], do: option.label, else: render_slot(@item, option)}</div>
           {render_slot(@native_actions)}
         </div>
       </div>
@@ -83,20 +88,17 @@ defmodule Sheaf.Components do
     """
   end
 
-  attr(:id, :string, required: true)
-  attr(:label, :string, required: true)
-
-  attr(:options, :list,
-    required: true,
-    doc: "Maps with string :value, :label and optional boolean :disabled."
-  )
-
-  attr(:value, :string,
-    default: nil,
-    doc: "Server accepted value; update in response to select_value."
-  )
-
-  attr(:name, :string, default: nil)
+  attr(:field, Phoenix.HTML.FormField, default: nil)
+  attr(:id, :string)
+  attr(:name, :string)
+  attr(:value, :any)
+  attr(:label, :string, default: nil)
+  attr(:options, :list, required: true)
+  attr(:mode, :string, values: ["form", "observer"], default: "form")
+  attr(:errors, :list, default: nil)
+  attr(:translate_error, :any, default: nil)
+  attr(:described_by, :string, default: nil)
+  attr(:error_class, :string, default: nil)
   attr(:placeholder, :string, default: "Choose")
   attr(:modal, :boolean, default: true)
   attr(:disabled, :boolean, default: false)
@@ -107,27 +109,41 @@ defmodule Sheaf.Components do
   attr(:popup_class, :string, default: nil)
   attr(:item_class, :string, default: nil)
   attr(:rest, :global)
+  slot(:trigger, doc: "Decoration after the selected semantic label.")
 
-  slot(:trigger,
-    doc: "Optional decoration after the owned selected-label span, such as a chevron."
+  slot(:item,
+    doc:
+      "Custom option content; :let receives the option map. The option label remains semantic text."
   )
 
   def select(assigns) do
-    selected = Enum.find(assigns.options, &(&1.value == assigns.value))
+    assigns = Sheaf.FormField.assign_field(assigns)
+    value = if is_nil(assigns.value), do: nil, else: to_string(assigns.value)
+    selected = Enum.find(assigns.options, &(&1.value == value))
+
+    error_ids =
+      Enum.with_index(assigns.errors, fn _, index ->
+        assigns.id <> "-error-" <> to_string(index)
+      end)
+
+    described_by = Enum.reject([assigns.described_by | error_ids], &is_nil/1) |> Enum.join(" ")
 
     assigns =
       assigns
       |> structural_styles()
+      |> assign(:value, value)
+      |> assign(:described_by_value, if(described_by == "", do: nil, else: described_by))
       |> assign(:selected_label, if(selected, do: selected.label, else: assigns.placeholder))
 
     ~H"""
-    <div {@rest} id={@id} class={@class} phx-hook="NativeSelect" data-accepted={@value || ""}
+    <div {@rest} id={@id} class={@class} phx-hook="NativeSelect" data-mode={@mode} data-accepted={@value || ""}
       data-modal={to_string(@modal)} data-read-only={to_string(@read_only)} data-cancel-value={to_string(@cancel_value)}>
-      <input :if={@name} id={@id <> "-hidden"} type="hidden" name={@name} value={@value || ""} disabled={@disabled} />
+      <label :if={@label} for={@id <> "-trigger"}>{@label}</label>
+      <input :if={@name} id={@id <> "-hidden"} data-part="hidden" type="hidden" name={@name} value={@value || ""} disabled={@disabled} />
       <button id={@id <> "-trigger"} type="button" role="combobox" data-part="anchor"
         class={@trigger_class} disabled={@disabled} aria-readonly={if @read_only, do: "true"}
-        aria-label={@label} aria-haspopup="listbox" aria-expanded="false"
-        aria-controls={@id <> "-popup"} popovertarget={@id <> "-layer"}>
+        aria-label={@label} aria-invalid={if @errors != [], do: "true"} aria-describedby={@described_by_value}
+        aria-haspopup="listbox" aria-expanded="false" aria-controls={@id <> "-popup"} popovertarget={@id <> "-layer"}>
         <span data-part="value" data-placeholder={@placeholder}>{@selected_label}</span>
         {render_slot(@trigger)}
       </button>
@@ -136,11 +152,12 @@ defmodule Sheaf.Components do
         <div id={@id <> "-popup"} data-part="select" role="listbox" aria-label={@label}
           class={@popup_class} style={@popup_style}>
           <div :for={option <- @options} id={@id <> "-item-" <> URI.encode_www_form(option.value)}
-            role="option" tabindex="-1" data-value={option.value} class={@item_class}
+            role="option" tabindex="-1" data-value={option.value} data-label={option.label} aria-label={option.label} class={@item_class}
             aria-disabled={to_string(Map.get(option, :disabled, false))}
-            aria-selected={to_string(option.value == @value)}>{option.label}</div>
+            aria-selected={to_string(option.value == @value)}>{if @item == [], do: option.label, else: render_slot(@item, option)}</div>
         </div>
       </div>
+      <p :for={{error, index} <- Enum.with_index(@errors)} id={@id <> "-error-" <> to_string(index)} class={@error_class}>{error}</p>
     </div>
     """
   end

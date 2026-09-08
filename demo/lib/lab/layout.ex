@@ -33,6 +33,16 @@ defmodule Lab.Layout do
       .lab-demo>output{display:block;margin:12px 0;color:#b4b4c0;font-size:14px}
       #amount-field [data-part=input]{width:120px}#amount-field label{display:block;margin-bottom:8px}
       #amount-field{margin-bottom:20px}
+      .lab-entry-form{display:grid;gap:20px;margin:28px 0 16px}
+      .lab-entry-form label{display:block;margin-bottom:8px;color:#c5c5d0}
+      .lab-entry-form>[phx-hook]>input:not([type=hidden]){width:100%}
+      .lab-entry-form [data-part=anchor]{min-width:200px;text-align:left}
+      .lab-entry-form [phx-hook=PortedNumberField]{display:grid;grid-template-columns:44px 140px 44px;gap:6px;align-items:center}
+      .lab-entry-form [phx-hook=PortedNumberField]>label,.lab-entry-form [phx-hook=PortedNumberField]>p{grid-column:1/-1}
+      .lab-entry-form [aria-invalid=true]{border-color:#e58e8e}
+      .lab-entry-form [id*="-error-"]{color:#f0a7a7;margin:6px 0 0}
+      .lab-entry-form>button{justify-self:start}
+      .lab-form-demo>a{color:#adb4ff}
     </style>
     </head><body>{@inner_content}</body></html>
     """

@@ -1,30 +1,43 @@
-# Combobox component and host contract
+# Combobox component and form contract
 
-Import `Sheaf.Combobox` and register the JavaScript `PortedCombobox` hook. This helper centralizes the existing input/list/ARIA/ID contract; it does not add a selection server or remote search. Filtering runs locally over the supplied options. The public helper uses a manual native popover and the existing shared anchor-positioning policy. The popup matches input width, stays within available viewport bounds and scrolls internally; `popup_class` supplies visual styling. Input retains focus. It adds no backdrop, scroll lock or separate dismissal policy. Legacy consumers without popover="manual" retain their inline layout.
+Import `Sheaf.Combobox` and register the `PortedCombobox` hook. The public helper defaults to `mode="form"`: selection updates immediately and the named hidden input emits bubbling native `input` and `change` events. Use normal Phoenix `phx-change`/`phx-submit` forms; no mount, intent or select event handlers are required. The search text is an unnamed draft; submitted values are option IDs, never arbitrary typed text.
 
 ```heex
-<.combobox id="favorite-fruit" label="Favorite fruit" name="profile[fruit]"
-  value={@accepted_fruit}
-  options={[%{value: "Apple"}, %{value: "Banana", disabled: true}, %{value: "Cherry"}]}
-  placeholder="Search fruit" input_class="fruit-input" popup_class="fruit-options" />
+<.form for={@form} phx-change="validate" phx-submit="save">
+  <.combobox field={@form[:country]} label="Country"
+    options={[%{value: "gb", label: "United Kingdom"}, %{value: "jp", label: "Japan"}]}
+    placeholder="Search countries" />
+</.form>
 ```
 
-Values must be unique nonempty strings; labels are separate strings and default to the value when omitted. For example `%{value: "gb", label: "United Kingdom"}` renders and searches United Kingdom while submitting gb. The hook resolves labels through the source's existing stringifyValueLabel callback for accepted selection, initial text, close restoration and selected-label filtering. The hidden field and selection protocol retain the canonical ID.
+`field` derives `id`, `name`, `value` and errors. Explicit `id`, `name` and `value` attributes override the field, including an explicit nil value. Without a field, supply a stable unique `id`, optional `name` and `value`. Field errors show only after `Phoenix.Component.used_input?/1`; explicit `errors` override that behavior. `translate_error` accepts a one-argument function for application Gettext integration. Without it, tuple errors use basic `%{key}` interpolation. Errors are linked through `aria-describedby` and `aria-invalid`; `described_by` can additionally link help text.
 
-If the selected option is not rendered, supply `accepted_label` alongside `value` to retain its display label. This is an explicit host fallback, not remote search or arbitrary object serialization. Existing string-only options continue to work.
+The browser owns open state, highlight, composition and draft text. Changed server values replace selection and draft after a patch. An acknowledgement echoing the current local selection preserves a newer search draft or IME session. Unrelated patches preserve local selection and draft; option-label changes refresh closed selection text. A native form reset restores the latest server-rendered value, clears draft/open state and emits no synthetic change. A server patch rendering the same value as its previous assign does not signal an explicit reset; use the native form reset when that distinction matters.
 
-The root ID is stable and unique; option IDs derive from encoded values. `value` is the server accepted value. The browser separately owns open state, active option, text draft and composition text. The input value attribute is protected during patches; the optional hidden form field reflects the accepted server assign, never an unaccepted typed query. `read_only` permits navigation but prevents changing value. `disabled` disables input and form field. `loop` defaults true. `cancel_input` and `cancel_close` are synchronous callback policies, not asynchronous server authorization.
+Values must be unique nonempty strings. Labels default to values. `accepted_label` retains a label when the selected option is absent from the rendered options. `disabled` disables both inputs; `read_only` permits navigation but prevents selection. `loop` defaults true. The `cancel_input` and `cancel_close` flags are synchronous callback policies.
 
-## Required LiveView integration
+## Custom option content
 
-The hook sends these existing events:
+```heex
+<.combobox field={@form[:novel_id]} label="Visual novel" options={@novels}>
+  <:item :let={novel}>
+    <img src={novel.cover_url} alt="" />
+    <span>{novel.label}</span>
+    <small>{novel.subtitle}</small>
+  </:item>
+</.combobox>
+```
 
-- `combobox_mount`: component_id and a fresh 128-bit instance token. Register the lifetime for a known rendered component.
-- `intent`: component_id, instance and generation. Invalidate pending proposals for that same lifetime; never invalidate another field.
-- `select`: component_id, instance, value (string or null), request_id and generation. Validate against that component's allowed options and permissions. Before delayed acceptance, recheck lifetime, latest request and generation.
+The item slot receives the original option map with its normalized label. Search and the accepted text use `label`, while submission uses `value`; extra visible text does not change either. Classes are available for root, label, input, popup, items and errors. The popup uses a manual native popover with the shared anchor-positioning policy, matches input width, stays within viewport bounds and scrolls internally. Input retains focus.
 
-Complete a proposal by updating the accepted assign and pushing `selection_result` with component_id, instance, request_id, generation, accepted (boolean), obsolete (boolean), and value (the canonical accepted string or null). Echo correlation fields exactly. Obsolete work must not commit server state. Rejected work retains the previous accepted value. A component/instance token identifies work; it grants no authorization.
+## Optional asynchronous selection approval
 
-Use a server state entry per rendered component, containing its current instance, latest request, generation and accepted value. Whitelist rendered IDs rather than allocating arbitrary client-supplied keys. On remount the fresh instance replaces the old lifetime; callbacks from the old lifetime must be ignored. The hook rejects foreign/stale replies, but that does not replace server-side guards. `Lab.PairedLive` demonstrates the protocol for one whitelisted component; its literal fixture ID must not be copied as a general multi-field router.
+Set `mode="async"` only when the host must approve each selection before committing it. This preserves the guarded acceptance bridge and requires all three host events:
 
-There is deliberately no new event naming scheme, server-search request, automatic form submit, or async filtering cache. Use the existing protocol and its recorded isolation tests. This helper provides markup, not a turnkey server callback module. The browser waits for acceptance before completing selection; applications must implement all three events and return the result rather than treating them as optional analytics.
+- `combobox_mount`: register `component_id` and a fresh 128-bit `instance` token for the rendered component.
+- `intent`: invalidate pending proposals with that component, instance and `generation`.
+- `select`: validate `value` (string or null), `request_id` and `generation` against allowed options and permissions. Recheck lifetime, latest request and generation before delayed acceptance.
+
+Complete by updating the accepted assign and pushing `selection_result` with `component_id`, `instance`, `request_id`, `generation`, `accepted`, `obsolete`, and canonical `value`. Echo correlation fields exactly. Obsolete work must not commit server state; rejection retains the previous value. Maintain state per whitelisted rendered component and replace the lifetime on remount. Browser stale-reply guards do not replace server-side authorization. Async mode's hidden field follows server patches and does not emit form-mode selection events.
+
+Filtering is local in both modes. Asynchronous selection approval is independent of remote search; this helper does not send search requests, debounce a search service or implement a remote result cache. Raw historical markup without `data-mode` retains the original asynchronous bridge for compatibility; public helpers always render their explicit mode. The same hook and source-translated behavior modules serve both modes.

@@ -8,7 +8,7 @@
     "typecheck": "tsc",
     "test:liveview-bridge": "node harness/liveview-bridge.mjs",
     "build:primitives": "node scripts/build-primitives.mjs",
-    "build:liveview": "esbuild client.js --bundle --outfile=priv/static/app.js",
+    "build:liveview": "esbuild demo/assets/client.js --bundle --outfile=demo/priv/static/app.js",
     "build:upstream": "node harness/build-upstream.mjs",
     "serve:upstream": "node harness/serve-upstream.mjs",
     "test:paired": "node harness/paired.mjs",

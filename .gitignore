@@ -9,4 +9,5 @@ test-results/
 playwright-report/
 
 priv/static/app.js
+demo/priv/static/app.js
 dist/

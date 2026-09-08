@@ -13,6 +13,20 @@ Output is the ignored `dist/` directory, regenerated on each run:
 
 The ESM bundle externalizes **@floating-ui/dom 1.8.0** and **@floating-ui/utils 0.2.12**. Its actual external import specifiers are `@floating-ui/dom` and `@floating-ui/utils/dom`; consumers must resolve those packages through their normal bundler. React, React DOM, Babel, Playwright and Phoenix JavaScript are not bundled or imported by this client entry. LiveSocket is supplied by the consuming Phoenix application.
 
-After placing the local build in an application's assets or using its private local package, register its exported hooks with the existing LiveSocket `hooks` option. Keep the matching HEEx component structure and event contracts: the hooks are not arbitrary-DOM enhancers. Elixir helpers remain source under `lib/sheaf/` (Components, Controls and Combobox); **there is no published Hex package or npm release**. This build is a handoff artifact, not a claim of production-ready packaging or supported application integration.
+The root Mix project is a dependency library named `:sheaf`. Add `{:sheaf, path: "../sheaf"}` to a sibling Phoenix application's dependencies and run `mix deps.get`. It compiles only `lib/sheaf/`, has no application callback or endpoint, and directly depends on Phoenix LiveView and Jason. The separate `demo/` app consumes this same path dependency and owns Bandit, endpoint configuration, and all `Lab.*` fixtures.
 
-Verified at handoff: `npm run build:primitives` succeeds; importing the ESM entry exposes all ten hooks without mounting them; TypeScript accepts the generated declaration entry. Measured unminified JavaScript is **122,995 bytes**, gzip **27,031 bytes**, and source map **267,106 bytes**. These are this build's sizes, not production bundle-size estimates; future changes and consumer tree shaking/minification can change them. `dist/build-summary.json` is authoritative for subsequent builds. No browser matrix was rerun for this build-only task.
+For client consumption, first run `npm run build:primitives` here. In a consuming application's assets directory, install the generated local package using a path appropriate for that checkout, for example `npm install /absolute/path/to/sheaf/dist`. Then register its exports with the application's existing LiveSocket:
+
+```js
+import {hooks as sheafHooks} from 'sheaf';
+const liveSocket = new LiveSocket('/live', Socket, {
+  hooks: {...existingHooks, ...sheafHooks},
+  params: {_csrf_token: csrfToken},
+});
+```
+
+The private local manifest carries the Floating UI runtime dependencies and TypeScript entry. Rebuild it when reusable source changes. Keep matching HEEx component structure and event contracts: the hooks are not arbitrary-DOM enhancers. **There is no published Hex package or npm release** and no production support promise. The root Mix package file allowlist excludes the demo and JavaScript development dependencies; generate `dist/` first if preparing a local package artifact.
+
+`npm run build:liveview` is separate: it bundles `demo/assets/client.js`, including the historical fixture adapters, into `demo/priv/static/app.js`. Fetch the demo's Mix dependencies before this build, since it imports Phoenix and LiveView JavaScript from `demo/deps/`. Run the playground with `cd demo && mix phx.server`; the default port remains 4197.
+
+Verified at handoff: `npm run build:primitives` succeeds; importing the ESM entry exposes all ten hooks without mounting them; TypeScript accepts the generated declaration entry. Measured unminified JavaScript is **129,042 bytes**, gzip **28,063 bytes**, and source map **278,743 bytes**. These are this build's sizes, not production bundle-size estimates; future changes and consumer tree shaking/minification can change them. `dist/build-summary.json` is authoritative for subsequent builds. No browser matrix was rerun for this build-only task.

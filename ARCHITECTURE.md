@@ -1,12 +1,8 @@
 # Architecture and ownership
 
-Browser controllers own transient focus, open state, highlighted items and pointer
-state. Combobox selection uses the documented mount/intent/request protocol;
-LiveView owns its accepted value and option contents. Select provides immediate
-feedback then reconciles the host's accepted assign. The small Controls helpers
-(number field, tabs, accordion and toggle group) are explicitly browser-owned:
-their `default_value` is mount-time configuration, with server notifications.
-These are different public contracts, not an implicit universal controlled API.
+Browser controllers own transient focus, open state, highlighted items and pointer state. Combobox, Select and NumberField default to native form integration through field-backed values and input/change events. Explicit asynchronous Combobox selection retains the mount/intent/request approval protocol; Select and NumberField optionally emit observer events. See docs/api-policy.md for form reconciliation, composition and reset semantics.
+
+Tabs, Accordion and ToggleGroup retain browser-owned mount-time defaults. This is not a universal controlled/uncontrolled API. The root :sheaf library has no application callback; demo/ is its separate Phoenix path consumer.
 
 The event/ownership contracts are documented in docs/components.md and
 docs/behavioral-contracts. No helper promises asynchronous approval unless its
